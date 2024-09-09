@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+
+* {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+} 
+
+
+.bgRegister {
+  background: url('../../img/background.png');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+
+}
+
+.box-register {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40vw;
+  height: auto;
+  max-height: 150vh;
+  border-radius: 10px;
+  box-shadow: 0 0 10px 1px #333;
+  overflow-y: auto;
+  padding: 1rem;
+
+}
+
+.form-register {
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  margin-bottom: 2rem; 
+}
+
+.box-title-register {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title-register {
+  font-size: 30px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #29b11d;
+}
+
+.columns-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+
+  .title-register {
+      font-size: 24px;
+  }
+
+  .box-register {
+      width: 90vw;
+      height: 90vh;
+      padding-bottom: 3rem;
+  }
+
+  .form-register {
+    width: 100%;
+    height: 100%;
+  }
+
+  .columns-container {
+    flex-direction: column; 
+    gap: 1rem; 
+  }
+
+  .column {
+    width: 100%; 
+  }  
+
+  .button-submit {
+    padding: 0.5rem 1rem;
+  }
+
+  
+}
