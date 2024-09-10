@@ -206,7 +206,48 @@ const register_user = (req, res) => {
     });
 };
 
+const register_Time = async (req, res) => {
+    const { userID, dayOfWeek, timeStart, timeEnd } = req.body;
 
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE schedule_dayofweek = ? or 
+                      ? between schedule_time_start and schedule_time_end or 
+                      ? between schedule_time_start and schedule_time_end`, [dayOfWeek, timeStart, timeEnd], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+
+                if (result.length !== 0) {
+                    console.log("Horário ja cadastrado");
+                    return res.status(400).send({ success: false, msg: "Horário ja cadastrado" });
+                }
+
+                db.query(`INSERT INTO schedules (schedule_user_ent, schedule_dayofweek, schedule_time_start, schedule_time_end) 
+                          VALUES (?, ?, ?, ?) `, [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
+
+                    if (err) {
+                        res.status(500).send("Erro ao cadastrar intervalo");
+                    }
+
+                    console.log("intervalo cadastrado com sucesso");
+                    res.send("intervalo cadastrado com sucesso");
+
+                })
+            });
+        });
+
+
+
+
+    } catch (err) {
+        console.error("Erro ao processar login:", err);
+        return res.status(500).send({ success: false, error: "Erro ao processar login" });
+    }
+
+}
 
 
 
@@ -257,36 +298,6 @@ const getUserTypes = (req, res) => {
     });
 };
 
-const register_enterprise = (req, res) => {
-
-    const { description, CNPJ, adress } = req.body;
-
-    db.query('SELECT * FROM enterprises WHERE ent_email=?', [CNPJ], (err, result) => {
-        if (err) {
-            console.log('Erro na verificação do CNPJ', err);
-            return res.status(500).send('Erro ao verificar o CNPJ');
-        }
-
-        if (result.length > 0) {
-            console.log('CNPJ já cadastrado');
-            return res.status(400).send('CNPJ já cadastrado');
-        }
-
-
-        db.query(`INSERT INTO enterprises (ent_description, ent_CNPJ, ent_endereco) VALUES (?, ?, ?)`, [description, CNPJ, adress],
-            (err, response) => {
-                if (err) {
-                    console.error("Erro ao cadastrar a empresa:", err);
-                    return res.status(500).send("Erro ao cadastrar a empresa");
-                }
-                console.log("Empresa cadastrada com sucesso");
-                res.send("Empresa cadastrada com sucesso");
-            }
-        );
-    });
-}
-
-
 
 const adminRoute = (req, res) => {
     res.send('Welcome, Admin');
@@ -298,5 +309,5 @@ const clientRoute = (req, res) => {
 
 module.exports = {
     verifyJWT, typeMiddleware, login, register_user, get_user, getUserTypes,
-    adminRoute, clientRoute, register_enterprise
+    adminRoute, clientRoute, register_Time
 }

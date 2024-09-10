@@ -8,6 +8,7 @@ import {
 import './MainEnterprise.css';
 import agenda from "../../img/ReceiverLogo.png"
 import Header from "../../components/Header/Header";
+import axios from 'axios';
 
 const MainEnterprise = () => {
     const [loading, setLoading] = useState(true);
@@ -55,9 +56,11 @@ const MainEnterprise = () => {
         }));
     };
 
-    handleValidateRegister = () => {
+    const handleValidateRegister = () => {
 
-        if (selectedDays === '0000000' || !timeStart || !timeEnd) {
+        const allDaysUnselected = Object.values(selectedDays).every(value => value === 0);
+
+        if (allDaysUnselected || !timeStart || !timeEnd || timeEnd < timeStart) {
             toast({
                 title: "É obrigatório marcar pelo menos um dia e um intervalo de horário!",
                 status: 'error',
@@ -72,21 +75,39 @@ const MainEnterprise = () => {
         }
     }
 
-
-
     const handleRegisterTime = () => {
 
+        const getUserID = localStorage.getItem('userId'); 
+
         const Data = {
-            userID : '',
-            dayOfWeek : selectedDays['Segunda-feira'] + selectedDays['Terça-feira'] + selectedDays['Quarta-feira'] + 
-            selectedDays['Quinta-feira'] + selectedDays['Sexta-feira'] + selectedDays.Sábado + selectedDays.Domingo,
-            timeStart : timeStart,
-            timeEnd : timeEnd
+            userID: getUserID,
+            dayOfWeek: selectedDays['Segunda-feira'] + selectedDays['Terça-feira'] + selectedDays['Quarta-feira'] +
+                selectedDays['Quinta-feira'] + selectedDays['Sexta-feira'] + selectedDays.Sábado + selectedDays.Domingo,
+            timeStart: timeStart,
+            timeEnd: timeEnd
         }
 
-        
-
+        axios.post("http://localhost:3001/register/interval", Data)
+            .then((response) => {
+                console.log(response);
+                toast({
+                    title: "Cadastro feito com Sucesso",
+                    status: 'success',
+                    isClosable: true,
+                    position: 'top-right',
+                });
+            })
+            .catch((error) => {
+                console.error("Erro ao fazer a solicitação:", error);
+                toast({
+                    title: "Erro ao fazer a solicitação",
+                    status: 'error',
+                    isClosable: true,
+                    position: 'top-right',
+                });
+            });
     }
+
 
     useEffect(() => {
         console.log(selectedDays);
@@ -164,7 +185,7 @@ const MainEnterprise = () => {
 
                         </ModalBody>
                         <ModalFooter>
-                            <Button colorScheme='blue' mr={3} onClick={handleRegisterTime}>Agendar</Button>
+                            <Button colorScheme='blue' mr={3} onClick={handleValidateRegister}>Agendar</Button>
                             <Button onClick={handleClickClose}>Cancelar</Button>
                         </ModalFooter>
                     </ModalContent>
