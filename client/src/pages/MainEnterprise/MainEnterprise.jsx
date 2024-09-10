@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from "../../components/Sidebar/Sidebar";
 import {
-    Center, Spinner, Box, Text, Button, FormControl, FormLabel, Input,
-    Select, useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
-    ModalFooter, ModalBody, ModalCloseButton, Checkbox, CheckboxGroup, Stack, HStack
+    Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex, 
+    useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
+    ModalFooter, ModalBody, ModalCloseButton, Checkbox, CheckboxGroup, Stack, HStack, Td, Tbody, Th, Thead, Table, InputRightElement,
+    TableContainer, Heading, Tr, InputGroup, IconButton,
 } from '@chakra-ui/react';
 import './MainEnterprise.css';
 import agenda from "../../img/ReceiverLogo.png"
 import Header from "../../components/Header/Header";
 import axios from 'axios';
+import { SearchIcon } from '@chakra-ui/icons';
 
 const MainEnterprise = () => {
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const { timeStart, setTimeStart } = useState(0);
-    const { timeEnd, setTimeEnd } = useState(0);
-    const [data, setData] = useState('');
-    const [horarios, setHorarios] = useState([]);
+    const [timeStart, setTimeStart] = useState('');
+    const [timeEnd, setTimeEnd] = useState('');
+    const [times, setTimes] = useState([]);
     const toast = useToast();
     const [selectedDays, setSelectedDays] = useState({
-        "Segunda-feira": 0,
-        "Terça-feira": 0,
-        "Quarta-feira": 0,
-        "Quinta-feira": 0,
-        "Sexta-feira": 0,
-        "Sábado": 0,
-        "Domingo": 0,
+        "segunda_feira": 0,
+        "terça_feira": 0,
+        "quarta_feira": 0,
+        "quinta_feira": 0,
+        "Sexta_feira": 0,
+        "sábado": 0,
+        "domingo": 0,
     });
+
+    const [filterDate, setFilterDate] = useState("");
+    const [agendamentos, setAgendamentos] = useState([]);
 
     const initialRef = React.useRef(null);
     const finalRef = React.useRef(null);
@@ -38,20 +42,31 @@ const MainEnterprise = () => {
         };
 
         loadData();
+        fetchTimes();
+
     }, []);
 
     const handleClickClose = () => {
         onClose();
-        setData('');
-        setHorarios([]);
+        setTimeEnd('');
+        setTimeStart('');
+        setSelectedDays(
+            {
+                "segunda_feira": 0,
+                "terça_feira": 0,
+                "quarta_feira": 0,
+                "quinta_feira": 0,
+                "Sexta_feira": 0,
+                "sábado": 0,
+                "domingo": 0
+            })
     };
 
-    // Função que atualiza os valores dos checkboxes
     const handleDaysChange = (day) => {
 
         setSelectedDays((prevSelectedDays) => ({
             ...prevSelectedDays,
-            [day]: prevSelectedDays[day] === 0 ? 1 : 0 // Alterna entre 0 e 1
+            [day]: prevSelectedDays[day] === 0 ? 1 : 0
 
         }));
     };
@@ -59,6 +74,8 @@ const MainEnterprise = () => {
     const handleValidateRegister = () => {
 
         const allDaysUnselected = Object.values(selectedDays).every(value => value === 0);
+
+        console.log(allDaysUnselected, timeStart, timeEnd);
 
         if (allDaysUnselected || !timeStart || !timeEnd || timeEnd < timeStart) {
             toast({
@@ -77,17 +94,25 @@ const MainEnterprise = () => {
 
     const handleRegisterTime = () => {
 
-        const getUserID = localStorage.getItem('userId'); 
+        const getUserID = localStorage.getItem('userId');
+
+        const selectedDaysString = Object.keys(selectedDays)
+            .filter(day => selectedDays[day] === 1)
+            .join(',');
 
         const Data = {
             userID: getUserID,
-            dayOfWeek: selectedDays['Segunda-feira'] + selectedDays['Terça-feira'] + selectedDays['Quarta-feira'] +
-                selectedDays['Quinta-feira'] + selectedDays['Sexta-feira'] + selectedDays.Sábado + selectedDays.Domingo,
+            dayOfWeek: selectedDaysString,
             timeStart: timeStart,
             timeEnd: timeEnd
         }
 
-        axios.post("http://localhost:3001/register/interval", Data)
+        axios.post("http://localhost:3001/register/time", Data,
+            {
+                headers: {
+                    'x-access-token': localStorage.getItem('token'),
+                }
+            })
             .then((response) => {
                 console.log(response);
                 toast({
@@ -98,20 +123,83 @@ const MainEnterprise = () => {
                 });
             })
             .catch((error) => {
+
+                if (error.status = 400) {
+
+                    toast({
+                        title: "Horário ja cadastrado",
+                        status: 'error',
+                        isClosable: true,
+                        position: 'top-right',
+                    });
+                } else {
+
+                    toast({
+                        title: "Erro ao fazer a solicitação",
+                        status: 'error',
+                        isClosable: true,
+                        position: 'top-right',
+                    });
+                }
                 console.error("Erro ao fazer a solicitação:", error);
-                toast({
-                    title: "Erro ao fazer a solicitação",
-                    status: 'error',
-                    isClosable: true,
-                    position: 'top-right',
-                });
+
+
             });
     }
 
+    // const handleFilterChange = (event) => {
+    //     setFilterDate(event.target.value);
+    // };
 
-    useEffect(() => {
-        console.log(selectedDays);
-    }, [selectedDays]);
+    // const handleFilter = () => {
+    //     const filtered = times.filter(times =>
+    //         times.schedule_time_start.includes(filterDate)
+    //     );
+    //     setTimes(filtered);
+    // };
+
+    const fetchTimes = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            console.log(token);
+            const response = await axios.get('http://localhost:3001/control/times', {
+                headers: {
+                    'x-access-token': token
+                }
+            });
+
+            setTimes(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar horários:', error);
+        }
+    };
+
+    const handleDelete = async (timeid) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(`http://localhost:3001/schedules/${timeid}`, {
+                headers: { 'x-access-token': token },
+            });
+            toast({
+                title: 'Horário excluído com sucesso!',
+                status: 'success',
+                isClosable: true,
+                position: 'top-right',
+            });
+            // Atualizar a lista de horários após exclusão
+            setTimes((prevSchedules) => prevSchedules.filter((times) => times.schedule_id !== timeid));
+        } catch (error) {
+            console.error('Erro ao excluir horário:', error);
+            toast({
+                title: 'Erro ao excluir horário',
+                status: 'error',
+                isClosable: true,
+                position: 'top-right',
+            });
+        }
+    };
+
+
 
     if (loading) {
         return (
@@ -130,10 +218,10 @@ const MainEnterprise = () => {
     }
 
     return (
-        <div>
+        <Box>
             <Header />
             <Sidebar />
-            <div className="container-main">
+            <Box className="container-main">
                 <div className="content">
                     <img src={agenda} alt="logo de calendario" />
                     <Button bg='#333' color='white' onClick={onOpen}>+ Novo intervalo de Horário</Button>
@@ -173,12 +261,12 @@ const MainEnterprise = () => {
                                 <HStack spacing={5}>
                                     <Box>
                                         <FormLabel>Horário Inicial</FormLabel>
-                                        <Input type="time" placeholder="Horário Inicial" />
+                                        <Input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)} />
                                     </Box>
 
                                     <Box>
                                         <FormLabel>Horário Final</FormLabel>
-                                        <Input type="time" placeholder="Horário Final" />
+                                        <Input type="time" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)} />
                                     </Box>
                                 </HStack>
                             </FormControl>
@@ -190,8 +278,43 @@ const MainEnterprise = () => {
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
-            </div>
-        </div>
+            </Box>
+
+            <Box p={4} className="container-main">
+                <Heading mb={6}>Horários Cadastrados</Heading>
+                <Stack spacing={4}>
+                    {times.length > 0 ? (
+                        times.map((time) => (
+                            <Box
+                                key={time.schedule_id}
+                                p={4}
+                                borderWidth={1}
+                                borderRadius="md"
+                                boxShadow="md"
+                                bg="white"
+                                _hover={{ bg: 'gray.50' }}
+                            >
+                                <Flex justify="space-between" align="center">
+                                    <Box>
+                                        <Text fontSize="lg" fontWeight="bold">
+                                            Dias da semana: {time.schedule_daysofweek}
+                                        </Text>
+                                        <Text>
+                                            Horário: {time.schedule_time_start} - {time.schedule_time_end}
+                                        </Text>
+                                    </Box>
+                                    <Button colorScheme="red" onClick={() => handleDelete(time.schedule_id)}>
+                                        Excluir
+                                    </Button>
+                                </Flex>
+                            </Box>
+                        ))
+                    ) : (
+                        <Text>Nenhum horário cadastrado.</Text>
+                    )}
+                </Stack>
+            </Box>
+        </Box>
     );
 };
 

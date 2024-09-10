@@ -55,8 +55,8 @@ const Login = () => {
                     const token = response.data.token;
                     const user = response.data.user;
                     localStorage.setItem('token', token);
-                    localStorage.setItem('userId', user.id);
-                    console.log('saved at localStorage:', { token, user });
+                    localStorage.setItem('user', JSON.stringify(user));
+                    console.log('salvo no storage: ', {user})
 
                     toast({
                         title: "Login realizado com Sucesso",
@@ -65,7 +65,15 @@ const Login = () => {
                         position: 'top-right',
                     });
 
-                    navigate('/main');
+                    navigate('/mainEnterprise');
+
+                    const type = jwtDecode(token).type;
+                    console.log(type);
+                    if (type === 2) {
+                        navigate('/main');
+                    } else {
+                        navigate('/mainEnterprise');
+                    }
                 } else {
                     toast({
                         title: "Senha ou usuário incorreto. Tente novamente!",

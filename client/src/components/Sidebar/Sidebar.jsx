@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { FaHome, FaUser, FaCog, FaSignOutAlt } from "react-icons/fa";
-import { RiCalendarScheduleFill } from "react-icons/ri";
+import { FaHome, FaSignOutAlt } from "react-icons/fa";
 import "./Sidebar.css";
 
 const Sidebar = () => {

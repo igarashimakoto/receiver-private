@@ -51,6 +51,23 @@ body .category h1 {
     gap: 10px;
 }
 
+
+
+
+.container-lista {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-left: 16%; 
+
+}
+
+
+
+
+
+
 @media screen and (max-width: 768px) {
     body .category h1 {
         font-size: 12px;

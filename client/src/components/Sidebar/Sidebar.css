@@ -48,7 +48,7 @@
   }
 
   .sidebar ul.menu li:hover{
-    background-color: blue;
+    background-color: #29b11d;
     border-radius: 30px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -116,6 +116,6 @@
   }
 
   .colorize {
-    color: blue;
+    color: #29b11d;
   }
   

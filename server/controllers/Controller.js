@@ -69,7 +69,7 @@ const login = async (req, res) => {
                 type: user.users_type,
             };
 
-            const token = jwt.sign({ id: user.use_id, role: user.Type }, SECRET_KEY, { expiresIn: '1h' });
+            const token = jwt.sign({ id: user.users_id, type: user.users_type }, SECRET_KEY, { expiresIn: '1h' });
             return res.send({ success: true, msg: "Usuário logado com sucesso", token, user: userData });
         } else {
             console.log("Senha incorreta para o email:", email);
@@ -206,47 +206,88 @@ const register_user = (req, res) => {
     });
 };
 
+const fetch_user_enterprise = async (req, res) => {
+
+    const userId = req.userId;
+
+    db.query("SELECT * FROM users_enterprise WHERE userent_id = ?", [userId], (err, result) => {
+        if (err) {
+            console.error("Erro ao buscar usuário:", err);
+            return res.status(500).send("Erro ao buscar usuário");
+        }
+        if (result.length === 0) {
+            return res.status(404).send({ success: false, msg: "Usuário não encontrado" });
+        }
+        res.send(result[0]);
+    });
+
+}
+
+
 const register_Time = async (req, res) => {
     const { userID, dayOfWeek, timeStart, timeEnd } = req.body;
 
     try {
-        const result = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM schedules WHERE schedule_dayofweek = ? or 
-                      ? between schedule_time_start and schedule_time_end or 
-                      ? between schedule_time_start and schedule_time_end`, [dayOfWeek, timeStart, timeEnd], (err, result) => {
+        const existingSchedules = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE 
+                      (? between schedule_time_start and schedule_time_end OR 
+                       ? between schedule_time_start and schedule_time_end) AND schedule_daysofweek = ?`,
+                [timeStart, timeEnd, dayOfWeek], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+
+        if (existingSchedules.length !== 0) {
+            return res.status(400).send({ success: false, msg: "Horário e dia já cadastrado" });
+        }
+
+        await new Promise((resolve, reject) => {
+            db.query(`INSERT INTO schedules (schedule_user_ent, schedule_daysofweek, schedule_time_start, schedule_time_end) 
+                      VALUES (?, ?, ?, ?)`, 
+                [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+
+        res.send({ success: true, msg: "Intervalo cadastrado com sucesso" });
+
+    } catch (err) {
+        console.error("Erro ao processar cadastro:", err);
+        res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
+    }
+};
+
+
+const list_times = async (req, res) => {
+
+    const userid = req.userId;
+    console.log('id do usuário:', userid);
+
+    try {
+
+        const timesResult = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE schedule_user_ent = ?`, [userid], (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
                     resolve(result);
                 }
-
-                if (result.length !== 0) {
-                    console.log("Horário ja cadastrado");
-                    return res.status(400).send({ success: false, msg: "Horário ja cadastrado" });
-                }
-
-                db.query(`INSERT INTO schedules (schedule_user_ent, schedule_dayofweek, schedule_time_start, schedule_time_end) 
-                          VALUES (?, ?, ?, ?) `, [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
-
-                    if (err) {
-                        res.status(500).send("Erro ao cadastrar intervalo");
-                    }
-
-                    console.log("intervalo cadastrado com sucesso");
-                    res.send("intervalo cadastrado com sucesso");
-
-                })
             });
         });
 
+    res.send(timesResult);    
+    } catch(err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
 
-
-
-    } catch (err) {
-        console.error("Erro ao processar login:", err);
-        return res.status(500).send({ success: false, error: "Erro ao processar login" });
     }
-
 }
 
 
@@ -309,5 +350,5 @@ const clientRoute = (req, res) => {
 
 module.exports = {
     verifyJWT, typeMiddleware, login, register_user, get_user, getUserTypes,
-    adminRoute, clientRoute, register_Time
+    adminRoute, clientRoute, register_Time, fetch_user_enterprise, list_times
 }

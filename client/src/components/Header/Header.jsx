@@ -8,7 +8,7 @@ const Header = () => {
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user) {
-            setUserName(user.nome);
+            setUserName(user.name);
         }
     }, []);
 
