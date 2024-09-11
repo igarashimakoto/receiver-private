@@ -290,8 +290,6 @@ const list_times = async (req, res) => {
 }
 
 
-
-
 const get_user = async (req, res) => {
 
     try {
@@ -339,15 +337,7 @@ const getUserTypes = (req, res) => {
 };
 
 
-const adminRoute = (req, res) => {
-    res.send('Welcome, Admin');
-};
-
-const clientRoute = (req, res) => {
-    res.send('Welcome, Client');
-};
-
 module.exports = {
     verifyJWT, typeMiddleware, login, register_user, get_user, getUserTypes,
-    adminRoute, clientRoute, register_Time, fetch_user_enterprise, list_times
+    register_Time, fetch_user_enterprise, list_times
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/Sidebar/Navbar";
+import Navbar from "../../components/Navbar/Navbar";
 import {
-    Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex, 
+    Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex,
     useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
     ModalFooter, ModalBody, ModalCloseButton, Checkbox, CheckboxGroup, Stack, HStack, Td, Tbody, Th, Thead, Table, InputRightElement,
     TableContainer, Heading, Tr, InputGroup, IconButton,
@@ -94,6 +94,8 @@ const SchedulesEnterprise = () => {
 
     const handleRegisterTime = () => {
 
+        console.log(times);
+
         const getUserID = localStorage.getItem('userId');
 
         const selectedDaysString = Object.keys(selectedDays)
@@ -114,7 +116,6 @@ const SchedulesEnterprise = () => {
                 }
             })
             .then((response) => {
-                console.log(response);
                 toast({
                     title: "Cadastro feito com Sucesso",
                     status: 'success',
@@ -142,15 +143,17 @@ const SchedulesEnterprise = () => {
                     });
                 }
                 console.error("Erro ao fazer a solicitação:", error);
-
-
             });
+
+        fetchTimes();      
+
+        handleClickClose();
+
     }
 
     const fetchTimes = async () => {
         try {
             const token = localStorage.getItem('token');
-            console.log(token);
             const response = await axios.get('http://localhost:3001/control/times', {
                 headers: {
                     'x-access-token': token
@@ -158,6 +161,7 @@ const SchedulesEnterprise = () => {
             });
 
             setTimes(response.data);
+            console.log(response.data)
         } catch (error) {
             console.error('Erro ao buscar horários:', error);
         }
@@ -186,6 +190,12 @@ const SchedulesEnterprise = () => {
                 position: 'top-right',
             });
         }
+
+        // Chama a função para buscar os horários atualizados
+        fetchTimes();
+
+        // Fecha o modal após a gravação
+        handleClickClose();
     };
 
 
@@ -210,14 +220,50 @@ const SchedulesEnterprise = () => {
         <Box>
             <Header />
             <Navbar />
-            <Box className="container-main">
-                <div className="content">
-                    <img src={agenda} alt="logo de calendario" />
+
+            <Box p={4} className="container-main">
+
+                <Heading mb={6}>Horários Cadastrados</Heading>
+                {/* Definindo um Box com altura fixa e rolagem */}
+                <Box className='box-list' p={4}>
+                    <Stack spacing={4}>
+                        {times.length > 0 ? (
+                            times.map((time) => (
+                                <Box
+                                    key={time.schedule_id}
+                                    p={4}
+                                    borderWidth={1}
+                                    borderRadius="md"
+                                    boxShadow="md"
+                                    bg="white"
+                                    _hover={{ bg: 'gray.50' }}
+                                >
+                                    <Flex justify="space-between" align="center">
+                                        <Box>
+                                            <Text fontSize="lg" fontWeight="bold">
+                                                Dias da semana: {time.schedule_daysofweek}
+                                            </Text>
+                                            <Text>
+                                                Horário: {time.schedule_time_start} - {time.schedule_time_end}
+                                            </Text>
+                                        </Box>
+                                        <Button colorScheme="red" onClick={() => handleDelete(time.schedule_id)}>
+                                            Excluir
+                                        </Button>
+                                    </Flex>
+                                </Box>
+                            ))
+                        ) : (
+                            <Text>Nenhum horário cadastrado.</Text>
+                        )}
+                    </Stack>
+                </Box>
+
+                <Box>
                     <Button bg='#333' color='white' onClick={onOpen}>+ Novo intervalo de Horário</Button>
-                </div>
+                </Box>
+
                 <Modal
-                    initialFocusRef={initialRef}
-                    finalFocusRef={finalRef}
                     isOpen={isOpen}
                     onClose={handleClickClose}
                 >
@@ -262,47 +308,11 @@ const SchedulesEnterprise = () => {
 
                         </ModalBody>
                         <ModalFooter>
-                            <Button colorScheme='blue' mr={3} onClick={handleValidateRegister}>Agendar</Button>
+                            <Button colorScheme='blue' mr={3} onClick={handleValidateRegister}>Gravar</Button>
                             <Button onClick={handleClickClose}>Cancelar</Button>
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
-            </Box>
-
-            <Box p={4} className="container-main">
-                <Heading mb={6}>Horários Cadastrados</Heading>
-                <Stack spacing={4}>
-                    {times.length > 0 ? (
-                        times.map((time) => (
-                            <Box
-                                key={time.schedule_id}
-                                p={4}
-                                borderWidth={1}
-                                borderRadius="md"
-                                boxShadow="md"
-                                bg="white"
-                                _hover={{ bg: 'gray.50' }}
-
-                            >
-                                <Flex justify="space-between" align="center">
-                                    <Box>
-                                        <Text fontSize="lg" fontWeight="bold">
-                                            Dias da semana: {time.schedule_daysofweek}
-                                        </Text>
-                                        <Text>
-                                            Horário: {time.schedule_time_start} - {time.schedule_time_end}
-                                        </Text>
-                                    </Box>
-                                    <Button colorScheme="red" onClick={() => handleDelete(time.schedule_id)}>
-                                        Excluir
-                                    </Button>
-                                </Flex>
-                            </Box>
-                        ))
-                    ) : (
-                        <Text>Nenhum horário cadastrado.</Text>
-                    )}
-                </Stack>
             </Box>
         </Box>
     );

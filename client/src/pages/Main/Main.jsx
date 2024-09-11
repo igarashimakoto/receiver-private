@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/Sidebar/Navbar";
+import Navbar from "../../components/Navbar/Navbar";
 import {
     Center, Spinner, Box, Text, Button, FormControl, FormLabel, Input,
     Select, useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
