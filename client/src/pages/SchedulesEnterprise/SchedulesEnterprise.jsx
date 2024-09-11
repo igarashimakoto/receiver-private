@@ -6,13 +6,13 @@ import {
     ModalFooter, ModalBody, ModalCloseButton, Checkbox, CheckboxGroup, Stack, HStack, Td, Tbody, Th, Thead, Table, InputRightElement,
     TableContainer, Heading, Tr, InputGroup, IconButton,
 } from '@chakra-ui/react';
-import './MainEnterprise.css';
+import './SchedulesEnterprise.css';
 import agenda from "../../img/ReceiverLogo.png"
 import Header from "../../components/Header/Header";
 import axios from 'axios';
 import { SearchIcon } from '@chakra-ui/icons';
 
-const MainEnterprise = () => {
+const SchedulesEnterprise = () => {
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [timeStart, setTimeStart] = useState('');
@@ -147,17 +147,6 @@ const MainEnterprise = () => {
             });
     }
 
-    // const handleFilterChange = (event) => {
-    //     setFilterDate(event.target.value);
-    // };
-
-    // const handleFilter = () => {
-    //     const filtered = times.filter(times =>
-    //         times.schedule_time_start.includes(filterDate)
-    //     );
-    //     setTimes(filtered);
-    // };
-
     const fetchTimes = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -186,7 +175,7 @@ const MainEnterprise = () => {
                 isClosable: true,
                 position: 'top-right',
             });
-            // Atualizar a lista de horários após exclusão
+
             setTimes((prevSchedules) => prevSchedules.filter((times) => times.schedule_id !== timeid));
         } catch (error) {
             console.error('Erro ao excluir horário:', error);
@@ -293,6 +282,7 @@ const MainEnterprise = () => {
                                 boxShadow="md"
                                 bg="white"
                                 _hover={{ bg: 'gray.50' }}
+
                             >
                                 <Flex justify="space-between" align="center">
                                     <Box>
@@ -318,4 +308,4 @@ const MainEnterprise = () => {
     );
 };
 
-export default MainEnterprise;
+export default SchedulesEnterprise;

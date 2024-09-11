@@ -7,6 +7,7 @@ import PrivateRoute from './PrivateRoute';
 import Main from '../pages/Main/Main';
 import Logout from '../pages/Logout/Logout';
 import MainEnterprise from '../pages/MainEnterprise/MainEnterprise';
+import SchedulesEnterprise from '../pages/SchedulesEnterprise/SchedulesEnterprise';
 
 
 const AppRouter = () => {
@@ -21,7 +22,8 @@ const AppRouter = () => {
           <Route element={<PrivateRoute />}>
 
             <Route path='/main' element={<Main/>}/>
-            <Route path='/mainEnterprise' element={<MainEnterprise/>}/>            
+            <Route path='/mainEnterprise' element={<MainEnterprise/>}/>     
+            <Route path='/schedulesEnterprise' element={<SchedulesEnterprise/>}/>       
                 
           </Route>
         </Routes>

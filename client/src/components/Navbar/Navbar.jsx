@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { FaHome, FaSignOutAlt } from "react-icons/fa";
-import "./Sidebar.css";
+import { FaHome, FaSignOutAlt, FaCalendar } from "react-icons/fa";
+import "./Navbar.css";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,6 +22,12 @@ const Sidebar = () => {
           </a>
         </li>
         <li>
+          <a href="/schedulesEnterprise">
+            <FaCalendar />
+            {!collapsed && <span>Dias para entrega</span>}
+          </a>
+        </li>
+        <li>
           <a href="/logout">
             <FaSignOutAlt />
             {!collapsed && <span>Logout</span>}
@@ -29,7 +35,7 @@ const Sidebar = () => {
         </li>
       </ul>
       <button className="toggle-btn" onClick={toggleSidebar}>
-        {collapsed ? '>' : '<'}
+        {collapsed ? '↓' : '↑'}
       </button>
     </div>
   );

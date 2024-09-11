@@ -3,23 +3,29 @@
 
 .sidebar {
     width: 250px;
-    height: 100vh;
+    /* height: 100vh; */
+    height: 300px;
+    border-radius: 5px;
     background-color: #333;
     color: #fff;
     position: fixed;
     left: 0;
     top: 0;
-    transition: width 0.3s ease;
+    transition: height 0.3s ease;
   }
   
   .sidebar.collapsed {
-    width: 70px;
+    height : 11vh;
   }
   
   .sidebar .logo {
     padding: 20px;
     text-align: center;
   }
+
+  .sidebar.collapsed ul.menu {
+    display: none; /* Oculta o menu quando o sidebar está colapsado */
+}
   
   .sidebar .logo-text {
     white-space: nowrap;

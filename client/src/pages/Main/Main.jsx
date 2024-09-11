@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from "../../components/Sidebar/Sidebar";
+import Navbar from "../../components/Sidebar/Navbar";
 import {
     Center, Spinner, Box, Text, Button, FormControl, FormLabel, Input,
     Select, useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
@@ -122,7 +122,7 @@ const Main = () => {
     return (
         <div>
             <Header />
-            <Sidebar />
+            <Navbar />
             <div className="container-main">
                 <div className="content">
                     <img src={agenda} alt="logo de calendario" />

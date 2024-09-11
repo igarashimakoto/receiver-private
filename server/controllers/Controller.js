@@ -269,7 +269,6 @@ const register_Time = async (req, res) => {
 const list_times = async (req, res) => {
 
     const userid = req.userId;
-    console.log('id do usuário:', userid);
 
     try {
 
