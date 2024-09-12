@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { FaHome, FaSignOutAlt, FaCalendar } from "react-icons/fa";
 import "./Navbar.css";
+import {jwtDecode} from 'jwt-decode';
+
+const token = localStorage.getItem('token');
+const type = jwtDecode(token).type;
 
 const Sidebar = () => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -21,12 +25,22 @@ const Sidebar = () => {
             {!collapsed && <span>Home</span>}
           </a>
         </li>
+        {type === 3 && (        
         <li>
           <a href="/schedulesEnterprise">
             <FaCalendar />
-            {!collapsed && <span>Dias para entrega</span>}
+            {!collapsed && <span>Dias para entregas</span>}
           </a>
-        </li>
+        </li>)}
+
+        {type === 2 && (
+        <li>
+        <a href="/">
+          <FaCalendar />
+          {!collapsed && <span>Marcar Entregas</span>}
+        </a>
+      </li>)}
+
         <li>
           <a href="/logout">
             <FaSignOutAlt />

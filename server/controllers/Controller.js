@@ -154,6 +154,10 @@ const register_user = (req, res) => {
                                 //SE FOR RECEBEDOR, CADASTRA AS INFORMAÇÕES DE EMPRESA
                                 if (userType === 3) {
 
+                                    console.log('cadastrando empresa: ', userType);
+
+
+
                                     const userId = response.insertId;
 
                                     connection.query(`INSERT INTO users_enterprise (userent_id, userent_desc, userent_cnpj, userent_address) 
@@ -183,6 +187,8 @@ const register_user = (req, res) => {
                                     );
 
                                 } else {
+
+                                    console.log('não cadastrou empresa: ', userType);                                    
 
                                     connection.commit((err) => {
                                         if (err) {
@@ -270,6 +276,8 @@ const list_times = async (req, res) => {
 
     const userid = req.userId;
 
+    console.log('id do usuário:', userid);
+
     try {
 
         const timesResult = await new Promise((resolve, reject) => {
@@ -287,6 +295,36 @@ const list_times = async (req, res) => {
         res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
 
     }
+}
+
+
+const delete_schedule = async (req,res) => {
+
+    const {timeid} = req.params;
+
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query("DELETE FROM schedules WHERE schedule_id = ?", [timeid], (err, result) => {
+                if (err) {
+                    console.error("Erro na exclusão:", err);
+                    reject(err);
+                } else {
+                    console.log("Resultado da exclusão:", result);
+                    resolve(result);
+                }
+            });
+        });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ success: false, msg: "horário não encontrado" });
+        }
+
+        res.send({ success: true, msg: "Exclusão realizada com sucesso" });
+    } catch (err) {
+        console.error("Erro ao tentar excluir:", err);
+        res.status(500).send({ success: false, error: "Erro ao tentar excluir" });
+    }
+
 }
 
 
@@ -339,5 +377,5 @@ const getUserTypes = (req, res) => {
 
 module.exports = {
     verifyJWT, typeMiddleware, login, register_user, get_user, getUserTypes,
-    register_Time, fetch_user_enterprise, list_times
+    register_Time, fetch_user_enterprise, list_times, delete_schedule
 }

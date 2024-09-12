@@ -57,7 +57,7 @@ const Home = () => {
 
                     <p>Otimize seu gerenciamento do recebimento de carga da sua empresa com o Receiver!</p>
                     <p>Contrate nosso sistema de agendamento agora mesmo.</p>
-                    <Button className='button-format' onClick={RegisterEmpPickHandler} mt={5} colorScheme='green'>Contratar empresa</Button>
+                    <Button className='button-format' onClick={RegisterEmpPickHandler} mt={5} colorScheme='green'>Cadastre seu usuário</Button>
                 </div>
             </main>
         </div>

@@ -14,30 +14,18 @@ import {
     AlertDialogOverlay
 } from '@chakra-ui/react';
 
-import './SchedulesEnterprise.css';
+import './BookSchedule.css';
 import Header from "../../components/Header/Header";
 import axios from 'axios';
 
 
-const SchedulesEnterprise = () => {
+const BookSchedule = () => {
     const [loading, setLoading] = useState(true);
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [timeStart, setTimeStart] = useState('');
-    const [timeEnd, setTimeEnd] = useState('');
-    const [times, setTimes] = useState([]);
     const toast = useToast();
-    const [selectedDays, setSelectedDays] = useState({
-        "segunda_feira": 0,
-        "terça_feira": 0,
-        "quarta_feira": 0,
-        "quinta_feira": 0,
-        "Sexta_feira": 0,
-        "sábado": 0,
-        "domingo": 0,
-    });
     const [isAlertOpen, setIsAlertOpen] = useState(false);
-    const [timeIdToDelete, setTimeIdToDelete] = useState(null);
     const cancelRef = React.useRef();
+    const [bookedSchedules, setBookedSchedules] = useState([]);    
 
     useEffect(() => {
         const loadData = async () => {
@@ -46,7 +34,6 @@ const SchedulesEnterprise = () => {
         };
 
         loadData();
-        fetchTimes();
 
     }, []);
 
@@ -54,176 +41,6 @@ const SchedulesEnterprise = () => {
         setIsAlertOpen(true);
         setTimeIdToDelete(timeid);
     };
-
-
-    const handleClickClose = () => {
-        onClose();
-        setTimeEnd('');
-        setTimeStart('');
-        setSelectedDays(
-            {
-                "segunda_feira": 0,
-                "terça_feira": 0,
-                "quarta_feira": 0,
-                "quinta_feira": 0,
-                "Sexta_feira": 0,
-                "sábado": 0,
-                "domingo": 0
-            })
-    };
-
-    const handleDaysChange = (day) => {
-
-        setSelectedDays((prevSelectedDays) => ({
-            ...prevSelectedDays,
-            [day]: prevSelectedDays[day] === 0 ? 1 : 0
-
-        }));
-    };
-
-    const handleValidateRegister = () => {
-
-        const allDaysUnselected = Object.values(selectedDays).every(value => value === 0);
-
-        console.log(allDaysUnselected, timeStart, timeEnd);
-
-        if (allDaysUnselected || !timeStart || !timeEnd || timeEnd < timeStart) {
-            toast({
-                title: "É obrigatório marcar pelo menos um dia e um intervalo de horário!",
-                status: 'error',
-                isClosable: true,
-                position: 'top-right',
-            });
-            console.error('Todos os campos são obrigatórios.');
-            return;
-        } else {
-
-            handleRegisterTime();
-        }
-    }
-
-    const handleRegisterTime = async () => {
-
-        const getUserID = localStorage.getItem('userId');
-
-        const selectedDaysString = Object.keys(selectedDays)
-            .filter(day => selectedDays[day] === 1)
-            .join(',');
-
-        const Data = {
-            userID: getUserID,
-            dayOfWeek: selectedDaysString,
-            timeStart: timeStart,
-            timeEnd: timeEnd
-        }
-
-        await axios.post("http://localhost:3001/register/time", Data,
-            {
-                headers: {
-                    'x-access-token': localStorage.getItem('token'),
-                }
-            })
-            .then((response) => {
-                toast({
-                    title: "Cadastro feito com Sucesso",
-                    status: 'success',
-                    isClosable: true,
-                    position: 'top-right',
-                });
-            })
-            .catch((error) => {
-
-                if (error.status === 400) {
-
-                    toast({
-                        title: "Horário ja cadastrado",
-                        status: 'error',
-                        isClosable: true,
-                        position: 'top-right',
-                    });
-                } else {
-
-                    toast({
-                        title: "Erro ao fazer a solicitação",
-                        status: 'error',
-                        isClosable: true,
-                        position: 'top-right',
-                    });
-                }
-                console.error("Erro ao fazer a solicitação:", error);
-            });
-
-        await fetchTimes();
-        handleClickClose();
-
-    }
-
-    const fetchTimes = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3001/control/times', {
-                headers: {
-                    'x-access-token': token
-                }
-            });
-
-            setTimes(response.data);
-            console.log(response.data)
-        } catch (error) {
-            console.error('Erro ao buscar horários:', error);
-        }
-    };
-
-    const handleConfirmDelete = async () => {
-        console.log('id do horário: ', timeIdToDelete);
-        await handleDelete(timeIdToDelete);
-        setIsAlertOpen(false);
-    };
-
-
-    const handleDelete = async (timeid) => {
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/control/enterprise/schedule/delete/${timeid}`, {
-                headers: { 'x-access-token': token },
-            });
-            toast({
-                title: 'Horário excluído com sucesso!',
-                status: 'success',
-                isClosable: true,
-                position: 'top-right',
-            });
-
-            setTimes((prevSchedules) => prevSchedules.filter((times) => times.schedule_id !== timeid));
-        } catch (error) {
-            console.error('Erro ao excluir horário:', error);
-            toast({
-                title: 'Erro ao excluir horário',
-                status: 'error',
-                isClosable: true,
-                position: 'top-right',
-            });
-        }
-
-        fetchTimes();
-        handleClickClose();
-    };
-
-    if (loading) {
-        return (
-            <Center h="100vh">
-                <Spinner
-                    thickness='4px'
-                    speed='0.65s'
-                    emptyColor='gray.200'
-                    color='blue.500'
-                    size='xl'
-                    mr={5}
-                />
-                <p>Carregando...</p>
-            </Center>
-        );
-    }
 
     return (
         <Box>
@@ -354,4 +171,4 @@ const SchedulesEnterprise = () => {
     );
 };
 
-export default SchedulesEnterprise;
+export default BookSchedule;
