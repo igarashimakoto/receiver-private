@@ -8,6 +8,7 @@ import Main from '../pages/Main/Main';
 import Logout from '../pages/Logout/Logout';
 import MainEnterprise from '../pages/MainEnterprise/MainEnterprise';
 import SchedulesEnterprise from '../pages/SchedulesEnterprise/SchedulesEnterprise';
+import SchedulesUser from '../pages/SchedulesUser/SchedulesUser'; 
 
 
 const AppRouter = () => {
@@ -24,6 +25,7 @@ const AppRouter = () => {
             <Route path='/main' element={<Main/>}/>
             <Route path='/mainEnterprise' element={<MainEnterprise/>}/>     
             <Route path='/schedulesEnterprise' element={<SchedulesEnterprise/>}/>       
+            <Route path='/schedulesUser' element={<SchedulesUser/>}/>
                 
           </Route>
         </Routes>

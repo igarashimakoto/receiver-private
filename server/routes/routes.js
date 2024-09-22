@@ -1,15 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const {register_user, get_user, verifyJWT, login, getUserTypes, register_Time, 
-       list_times, delete_schedule} = require('../controllers/Controller');
+const {registerUser, getUser, verifyJWT, login, getUserTypes, registerSchedule, 
+       getSchedules, deleteSchedule, registerBookedSchedule, getBookedSchedules, deleteBookedSchedule,
+       getEnterprises, getSpecificSchedules} = require('../controllers/Controller');
 
 router.post('/login', login);
-router.post('/register', register_user);
-router.post('/register/time', register_Time);
-router.get('/user', verifyJWT, get_user);
+router.post('/register', registerUser);
+router.post('/register/time', registerSchedule);
+router.get('/user', verifyJWT, getUser);
 router.get('/control/userTypes', getUserTypes);
-router.get('/control/times',verifyJWT, list_times);
-router.delete('/control/enterprise/schedule/delete/:timeid',verifyJWT, delete_schedule);
+router.get('/control/schedules',verifyJWT, getSchedules);
+router.get('/control/schedules/:dayOfWeek/:entid',verifyJWT, getSpecificSchedules);
+router.delete('/control/enterprise/schedule/delete/:timeid',verifyJWT, deleteSchedule);
+router.post('/register/bookSchedule',verifyJWT, registerBookedSchedule);
+router.get('/control/bookedSchedules', verifyJWT, getBookedSchedules); 
+router.delete('/control/user/BookedSchedule/delete',verifyJWT, deleteBookedSchedule);
+router.get('/control/enterprises',verifyJWT, getEnterprises); 
 
 module.exports = router;
 

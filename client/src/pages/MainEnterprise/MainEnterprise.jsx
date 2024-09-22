@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/Navbar/Navbar";
+import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
 import {
     Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex, 
     useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
-    ModalFooter, ModalBody, ModalCloseButton, Checkbox, CheckboxGroup, Stack, HStack, Td, Tbody, Th, Thead, Table, InputRightElement,
-    TableContainer, Heading, Tr, InputGroup, IconButton,
+    ModalFooter, ModalBody, ModalCloseButton, Checkbox, Stack, HStack,
+    Heading,
 } from '@chakra-ui/react';
 import './MainEnterprise.css';
 import agenda from "../../img/ReceiverLogo.png"
 import Header from "../../components/Header/Header";
 import axios from 'axios';
-import { SearchIcon } from '@chakra-ui/icons';
 
 const MainEnterprise = () => {
     const [loading, setLoading] = useState(true);
@@ -28,9 +27,6 @@ const MainEnterprise = () => {
         "sábado": 0,
         "domingo": 0,
     });
-
-    const [filterDate, setFilterDate] = useState("");
-    const [agendamentos, setAgendamentos] = useState([]);
 
     const initialRef = React.useRef(null);
     const finalRef = React.useRef(null);
@@ -208,7 +204,7 @@ const MainEnterprise = () => {
                     thickness='4px'
                     speed='0.65s'
                     emptyColor='gray.200'
-                    color='blue.500'
+                    color='green.500'
                     size='xl'
                     mr={5}
                 />

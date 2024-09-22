@@ -27,22 +27,6 @@ const Login = () => {
         loadData();
     }, []);
 
-    if (loading) {
-        return (
-            <Center h="100vh">
-                <Spinner
-                    thickness='4px'
-                    speed='0.65s'
-                    emptyColor='gray.200'
-                    color='blue.500'
-                    size='xl'
-                    mr={5}
-                />
-                <p>Carregando...</p>
-            </Center>
-        );
-    }     
-
     const handleLogin = () => {
         const userData = {
             email: email,
@@ -55,8 +39,8 @@ const Login = () => {
                     const token = response.data.token;
                     const user = response.data.user;
                     localStorage.setItem('token', token);
-                    localStorage.setItem('user', JSON.stringify(user));
-                    console.log('salvo no storage: ', {user})
+                    localStorage.setItem('userid', user.id);
+                    localStorage.setItem('username', user.name);
 
                     toast({
                         title: "Login realizado com Sucesso",
@@ -111,7 +95,23 @@ const Login = () => {
         }
 
         handleLogin();
-    };    
+    };   
+    
+    if (loading) {
+        return (
+            <Center h="100vh">
+                <Spinner
+                    thickness='4px'
+                    speed='0.65s'
+                    emptyColor='gray.200'
+                    color='green.500'
+                    size='xl'
+                    mr={5}
+                />
+                <p>Carregando...</p>
+            </Center>
+        );
+    }  
 
     return (
         <div className="bgLogin">
@@ -138,7 +138,7 @@ const Login = () => {
                             <Input
                                 pr='4.5rem'
                                 type={show ? 'text' : 'password'}
-                                placeholder='Password'
+                                placeholder='senha'
                                 border='1px'
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}

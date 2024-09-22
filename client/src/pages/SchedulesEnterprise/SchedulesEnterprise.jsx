@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/Navbar/Navbar";
+import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
 import {
     Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex,
     useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
@@ -87,7 +87,7 @@ const SchedulesEnterprise = () => {
 
         console.log(allDaysUnselected, timeStart, timeEnd);
 
-        if (allDaysUnselected || !timeStart || !timeEnd || timeEnd < timeStart) {
+        if (allDaysUnselected || !timeStart || !timeEnd) {
             toast({
                 title: "É obrigatório marcar pelo menos um dia e um intervalo de horário!",
                 status: 'error',
@@ -96,7 +96,16 @@ const SchedulesEnterprise = () => {
             });
             console.error('Todos os campos são obrigatórios.');
             return;
-        } else {
+        } else if (timeEnd < timeStart) { 
+            toast({
+                title: "horário de início deve ser maior que o horário de término",
+                status: 'error',
+                isClosable: true,
+                position: 'top-right',
+            });
+            console.error('Todos os campos são obrigatórios.');
+            return;       
+        } else{
 
             handleRegisterTime();
         }
@@ -104,7 +113,7 @@ const SchedulesEnterprise = () => {
 
     const handleRegisterTime = async () => {
 
-        const getUserID = localStorage.getItem('userId');
+        const getUserID = localStorage.getItem('userid');
 
         const selectedDaysString = Object.keys(selectedDays)
             .filter(day => selectedDays[day] === 1)
@@ -159,9 +168,11 @@ const SchedulesEnterprise = () => {
     }
 
     const fetchTimes = async () => {
+
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3001/control/times', {
+
+            const response = await axios.get('http://localhost:3001/control/schedules', {
                 headers: {
                     'x-access-token': token
                 }
@@ -216,7 +227,7 @@ const SchedulesEnterprise = () => {
                     thickness='4px'
                     speed='0.65s'
                     emptyColor='gray.200'
-                    color='blue.500'
+                    color='green.500'
                     size='xl'
                     mr={5}
                 />

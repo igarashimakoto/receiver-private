@@ -6,10 +6,9 @@ const Header = () => {
     const [userName, setUserName] = useState('');
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user) {
-            setUserName(user.name);
-        }
+
+        setUserName(localStorage.getItem('username'));
+
     }, []);
 
     return (

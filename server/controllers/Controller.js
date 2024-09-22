@@ -11,6 +11,7 @@ const verifyJWT = (req, res, next) => {
 
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
         if (err) return res.status(500).send('Failed to authenticate token');
+
         req.userId = decoded.id;
         req.userType = decoded.type;
         next();
@@ -81,7 +82,7 @@ const login = async (req, res) => {
     }
 }
 
-const register_user = (req, res) => {
+const registerUser = (req, res) => {
     const { email, name, password, phone, userType, enterpriseDesc, cnpj, address } = req.body;
 
     db.getConnection((err, connection) => {
@@ -152,11 +153,7 @@ const register_user = (req, res) => {
                                 }
 
                                 //SE FOR RECEBEDOR, CADASTRA AS INFORMAÇÕES DE EMPRESA
-                                if (userType === 3) {
-
-                                    console.log('cadastrando empresa: ', userType);
-
-
+                                if (userType == 3) {
 
                                     const userId = response.insertId;
 
@@ -186,9 +183,7 @@ const register_user = (req, res) => {
                                         }
                                     );
 
-                                } else {
-
-                                    console.log('não cadastrou empresa: ', userType);                                    
+                                } else {                                   
 
                                     connection.commit((err) => {
                                         if (err) {
@@ -212,123 +207,7 @@ const register_user = (req, res) => {
     });
 };
 
-const fetch_user_enterprise = async (req, res) => {
-
-    const userId = req.userId;
-
-    db.query("SELECT * FROM users_enterprise WHERE userent_id = ?", [userId], (err, result) => {
-        if (err) {
-            console.error("Erro ao buscar usuário:", err);
-            return res.status(500).send("Erro ao buscar usuário");
-        }
-        if (result.length === 0) {
-            return res.status(404).send({ success: false, msg: "Usuário não encontrado" });
-        }
-        res.send(result[0]);
-    });
-
-}
-
-
-const register_Time = async (req, res) => {
-    const { userID, dayOfWeek, timeStart, timeEnd } = req.body;
-
-    try {
-        const existingSchedules = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM schedules WHERE 
-                      (? between schedule_time_start and schedule_time_end OR 
-                       ? between schedule_time_start and schedule_time_end) AND schedule_daysofweek = ?`,
-                [timeStart, timeEnd, dayOfWeek], (err, result) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(result);
-                    }
-                });
-        });
-
-        if (existingSchedules.length !== 0) {
-            return res.status(400).send({ success: false, msg: "Horário e dia já cadastrado" });
-        }
-
-        await new Promise((resolve, reject) => {
-            db.query(`INSERT INTO schedules (schedule_user_ent, schedule_daysofweek, schedule_time_start, schedule_time_end) 
-                      VALUES (?, ?, ?, ?)`, 
-                [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(result);
-                    }
-                });
-        });
-
-        res.send({ success: true, msg: "Intervalo cadastrado com sucesso" });
-
-    } catch (err) {
-        console.error("Erro ao processar cadastro:", err);
-        res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
-    }
-};
-
-
-const list_times = async (req, res) => {
-
-    const userid = req.userId;
-
-    console.log('id do usuário:', userid);
-
-    try {
-
-        const timesResult = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM schedules WHERE schedule_user_ent = ?`, [userid], (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
-            });
-        });
-
-    res.send(timesResult);    
-    } catch(err) {
-        res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
-
-    }
-}
-
-
-const delete_schedule = async (req,res) => {
-
-    const {timeid} = req.params;
-
-    try {
-        const result = await new Promise((resolve, reject) => {
-            db.query("DELETE FROM schedules WHERE schedule_id = ?", [timeid], (err, result) => {
-                if (err) {
-                    console.error("Erro na exclusão:", err);
-                    reject(err);
-                } else {
-                    console.log("Resultado da exclusão:", result);
-                    resolve(result);
-                }
-            });
-        });
-
-        if (result.affectedRows === 0) {
-            return res.status(404).send({ success: false, msg: "horário não encontrado" });
-        }
-
-        res.send({ success: true, msg: "Exclusão realizada com sucesso" });
-    } catch (err) {
-        console.error("Erro ao tentar excluir:", err);
-        res.status(500).send({ success: false, error: "Erro ao tentar excluir" });
-    }
-
-}
-
-
-const get_user = async (req, res) => {
+const getUser = async (req, res) => {
 
     try {
         const userId = req.userId;
@@ -374,8 +253,271 @@ const getUserTypes = (req, res) => {
     });
 };
 
+const fetchUserEnterprise = async (req, res) => {
+
+    const userId = req.userId;
+
+    db.query("SELECT * FROM users_enterprise WHERE userent_id = ?", [userId], (err, result) => {
+        if (err) {
+            console.error("Erro ao buscar usuário:", err);
+            return res.status(500).send("Erro ao buscar usuário");
+        }
+        if (result.length === 0) {
+            return res.status(404).send({ success: false, msg: "Usuário não encontrado" });
+        }
+        res.send(result[0]);
+    });
+}
+
+const getEnterprises = async (req, res) => {
+
+    try {
+
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM users_enterprise`, (err, result) => {
+                if (err) {
+
+                    console.log(err)
+                    reject(err);
+                } else {
+
+                    resolve(result);
+                }
+            });
+        });
+
+    res.send(result);    
+    } catch(err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar as empresas" });
+
+    }
+}
+
+
+const registerSchedule = async (req, res) => {
+    const { userID, dayOfWeek, timeStart, timeEnd } = req.body;
+
+    try {
+        const existingSchedules = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE 
+                      (? between schedule_time_start and schedule_time_end OR 
+                       ? between schedule_time_start and schedule_time_end) AND schedule_daysofweek = ?`,
+                [timeStart, timeEnd, dayOfWeek], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+
+        if (existingSchedules.length !== 0) {
+            return res.status(400).send({ success: false, msg: "Horário e dia já cadastrado" });
+        }
+
+        await new Promise((resolve, reject) => {
+            db.query(`INSERT INTO schedules (schedule_user_ent, schedule_daysofweek, schedule_time_start, schedule_time_end) 
+                      VALUES (?, ?, ?, ?)`, 
+                [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+
+        res.send({ success: true, msg: "Intervalo cadastrado com sucesso" });
+
+    } catch (err) {
+        console.error("Erro ao processar cadastro:", err);
+        res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
+    }
+};
+
+const getSchedules = async (req, res) => {
+
+    const userid = req.userId;
+
+    try {
+
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE schedule_user_ent = ?`, [userid], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+    res.send(result);    
+    } catch(err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
+
+    }
+}
+
+const getSpecificSchedules = async (req, res) => {
+
+    const {entid, dayOfWeek} = req.params;
+
+    console.log('entrou na busca de horários', entid, dayOfWeek);
+
+    try {
+
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE schedule_user_ent = ? AND FIND_IN_SET(?, schedule_daysofweek)`, [entid, dayOfWeek], (err, result) => {
+                if (err) {
+
+                    console.log(err)
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+    res.send(result);    
+    } catch(err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
+
+    }
+}
+
+
+
+const deleteSchedule = async (req,res) => {
+
+    const {timeid} = req.params;
+
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query("DELETE FROM schedules WHERE schedule_id = ?", [timeid], (err, result) => {
+                if (err) {
+                    console.error("Erro na exclusão:", err);
+                    reject(err);
+                } else {
+                    console.log("Resultado da exclusão:", result);
+                    resolve(result);
+                }
+            });
+        });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ success: false, msg: "horário não encontrado" });
+        }
+
+        res.send({ success: true, msg: "Exclusão realizada com sucesso" });
+    } catch (err) {
+        console.error("Erro ao tentar excluir:", err);
+        res.status(500).send({ success: false, error: "Erro ao tentar excluir" });
+    }
+
+}
+
+
+const registerBookedSchedule = async (req,res) => {
+
+    const {scheduleid, userid, date, comment} = req.body;
+    
+    try {
+        const existingBookings = await new Promise((resolve, reject) => {
+            
+            db.query(`SELECT * FROM schedules_booked WHERE schedboo_date=? AND schedboo_id=? AND schedboo_status=?`,
+                [date, scheduleid, 'pendente'], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });				
+
+        if (existingBookings.length !== 0) {
+            return res.status(400).send({ success: false, msg: "Horário ja reservado" });
+        }
+
+        await new Promise((resolve, reject) => {
+            db.query(`INSERT INTO schedules_booked (schedboo_id, schedboo_user, schedboo_date, schedboo_status, schedboo_comment) 
+                      VALUES (?, ?, ?, ?)`, 
+                [scheduleid, userid, date, 'pendente', comment], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+        });
+
+        res.send({ success: true, msg: "Reserva cadastrada com sucesso" });
+
+    } catch (err) {
+        console.error("Erro ao processar cadastro:", err);
+        res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
+    } 
+
+
+};
+
+const getBookedSchedules = async (req, res) => {
+
+    const {userid} = req.params;
+
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules_booked 
+                      INNER JOIN schedules ON schedboo_id = schedule_id
+                      INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                      WHERE schedboo_user=? AND schedboo_status=?`, [userid, 'pendente'], (err, result) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+        res.send(result);    
+    } catch(err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar os horários" });
+ 
+    }
+};
+
+const deleteBookedSchedule = async(req,res) => {
+
+    const {scheduleId, date, userId} = req.Body;
+
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query("DELETE FROM schedules_booked WHERE schedboo_id=? AND schedboo_date=? AND schedboo_user=?", [scheduleId, date, userId], (err, result) => {
+                if (err) {
+                    console.error("Erro na exclusão:", err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ success: false, msg: "horário não encontrado" });
+        }
+
+        res.send({ success: true, msg: "Exclusão realizada com sucesso" });
+    } catch (err) {
+        console.error("Erro ao tentar excluir:", err);
+        res.status(500).send({ success: false, error: "Erro ao tentar excluir" });
+    }
+
+
+}
+
 
 module.exports = {
-    verifyJWT, typeMiddleware, login, register_user, get_user, getUserTypes,
-    register_Time, fetch_user_enterprise, list_times, delete_schedule
+    verifyJWT, typeMiddleware, login, registerUser, getUser, getUserTypes, getSchedules,
+    registerSchedule, fetchUserEnterprise, getSchedules, deleteSchedule, getBookedSchedules, registerBookedSchedule, deleteBookedSchedule,
+    getEnterprises, getSpecificSchedules
 }

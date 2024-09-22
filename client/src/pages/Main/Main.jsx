@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/Navbar/Navbar";
+import Navbar from "../../components/NavbarUser/NavbarUser";
 import {
     Center, Spinner, Box, useToast } from '@chakra-ui/react';
 import './Main.css';
@@ -30,7 +30,7 @@ const Main = () => {
                     thickness='4px'
                     speed='0.65s'
                     emptyColor='gray.200'
-                    color='blue.500'
+                    color='green.500'
                     size='xl'
                     mr={5}
                 />

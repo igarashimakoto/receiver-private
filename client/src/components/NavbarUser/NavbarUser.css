@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+.sidebar {
+    width: 250px;
+    /* height: 100vh; */
+    height: 300px;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    left: 0;
+    top: 0;
+    transition: height 0.3s ease;
+  }
+  
+  .sidebar.collapsed {
+    height : 11vh;
+  }
+  
+  .sidebar .logo {
+    padding: 20px;
+    text-align: center;
+  }
+
+  .sidebar.collapsed ul.menu {
+    display: none; /* Oculta o menu quando o sidebar está colapsado */
+}
+  
+  .sidebar .logo-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: 30px;
+    font-family: "Montserrat", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    padding-left: 15px;
+    color: #29b11d;
+    font-weight: bold;
+  }
+  
+  .sidebar ul.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .sidebar ul.menu li {
+    padding: 10px 20px;
+    padding-top: 30px;
+    transition: 0.4s ease;
+  }
+
+  .sidebar ul.menu li:hover{
+    background-color: #29b11d;
+    border-radius: 30px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-top: 10px;
+  }
+  
+  .sidebar ul.menu li a {
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 20px;
+  }
+  
+  .sidebar ul.menu li a span {
+    margin-left: 10px;
+  }
+  
+  .toggle-btn {
+    position: absolute;
+    top: 20px;
+    left: 0;
+    z-index: 1000;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    width: 60px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+  }
+  
+  .toggle-btn:hover {
+    background-color: #555;
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 70px;
+    }
+  
+    .sidebar.collapsed .logo-text {
+      display: none;
+    }
+  
+    .sidebar ul.menu li a span {
+      display: none;
+    }
+  
+    .sidebar.collapsed ul.menu li a span {
+      display: block;
+    }
+
+    .toggle-btn {
+      display: none;
+    }
+
+    .logo {
+      display: none;
+    }
+
+  }
+
+  .colorize {
+    color: #29b11d;
+  }
+  
