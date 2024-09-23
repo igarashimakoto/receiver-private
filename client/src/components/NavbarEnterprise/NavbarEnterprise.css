@@ -24,7 +24,7 @@
   }
 
   .sidebar.collapsed ul.menu {
-    display: none; /* Oculta o menu quando o sidebar está colapsado */
+    display: none;
 }
   
   .sidebar .logo-text {

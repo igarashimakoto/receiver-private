@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from "../../components/NavbarUser/NavbarUser";
 import {
     Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex,
@@ -25,6 +25,30 @@ const SchedulesUser = () => {
     const [comment, setComment] = useState('');
     const cancelRef = React.useRef();
     const [selectedEnterprise, setSelectedEnterprise] = useState(0);
+    const [bookedIdToCancel, setBookedIdToCancel] = useState(0);
+    const [filterStatus, setFilterStatus] = useState('todos');
+
+
+    const fetchBookedSchedules = useCallback(async () => {
+        const userid = localStorage.getItem('userid');
+        try {
+
+            console.log(userid, filterStatus);
+
+
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:3001/control/bookedSchedules/${userid}/${filterStatus}`, {
+                headers: {
+                    'x-access-token': token
+                }
+            });
+            console.log('horários marcados', response.data);
+            setBookedSchedules(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar horários:', error);
+        }
+    }, [filterStatus]);
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -41,7 +65,8 @@ const SchedulesUser = () => {
         fetchBookedSchedules();
         fetchEnterprises();
 
-    }, [selectedEnterprise, scheduleDate]);
+    }, [selectedEnterprise, scheduleDate, fetchBookedSchedules]);
+
 
     const handleClickClose = () => {
 
@@ -51,6 +76,12 @@ const SchedulesUser = () => {
         setComment('');
 
     };
+
+    const handleChangeFilter = (status) => {
+
+        setFilterStatus(status);
+        fetchBookedSchedules();
+    }
 
     const handleValidateBooking = () => {
 
@@ -77,7 +108,7 @@ const SchedulesUser = () => {
             comment: comment
         }
 
-        await axios.post("http://localhost:3001/register/time", Data,
+        await axios.post("http://localhost:3001/register/bookSchedule", Data,
             {
                 headers: {
                     'x-access-token': localStorage.getItem('token'),
@@ -138,22 +169,6 @@ const SchedulesUser = () => {
         }
     }
 
-    const fetchBookedSchedules = async () => {
-
-        try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3001/control/bookedSchedules', {
-                headers: {
-                    'x-access-token': token
-                }
-            });
-
-            setBookedSchedules(response.data);
-            console.log(response.data)
-        } catch (error) {
-            console.error('Erro ao buscar horários:', error);
-        }
-    };
 
     const enterpriseSchedules = async (enterpriseid, dateString) => {
 
@@ -180,6 +195,48 @@ const SchedulesUser = () => {
         }
     }
 
+    const handleCancelBooking = async () => {
+
+        const Data = {
+            scheduleBookedId: bookedIdToCancel,
+            status: 'cancelado'
+        }
+
+        console.log('entrou aqui', Data);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post('http://localhost:3001/control/bookedSchedules/updateStatus', Data, {
+                headers: {
+                    'x-access-token': token
+                }
+            });
+
+            setSchedules(response.data);
+            console.log(response.data);
+        } catch (error) {
+
+            toast({
+                title: "Erro ao marcar como cancelado",
+                status: 'error',
+                isClosable: true,
+                position: 'top-right',
+            });
+
+
+            console.error('Erro ao marcar como cancelado:', error);
+        }
+
+        setIsAlertOpen(false);
+        setBookedIdToCancel(0);
+        fetchBookedSchedules();
+    }
+
+    const openAlert = (bookedScheduleId) => {
+        setIsAlertOpen(true);
+        setBookedIdToCancel(bookedScheduleId);
+    };
+
     if (loading) {
         return (
             <Center h="100vh">
@@ -204,6 +261,23 @@ const SchedulesUser = () => {
             <Box p={4} className="container-main">
 
                 <Heading mb={6}>Entregas Cadastradas</Heading>
+
+                <Flex justify="flex-end" mb={4}>
+                    <Box />
+                    <Select
+                        width="200px"
+                        value={filterStatus}
+                        onChange={(e) => handleChangeFilter(e.target.value)}
+                    >
+                        <option value="todos">todos</option>
+                        <option value="pendente">pendente</option>
+                        <option value="confirmado">confirmado</option>
+                        <option value="concluido">concluído</option>
+                        <option value="cancelado">cancelado</option>
+                        <option value="cancelado">recusado</option>
+                    </Select>
+                </Flex>
+
                 <Box className='box-list' p={4}>
                     <Stack spacing={4}>
                         {bookedSchedules.length > 0 ? (
@@ -220,7 +294,7 @@ const SchedulesUser = () => {
                                     <Flex justify="space-between" align="center">
                                         <Box>
                                             <Text fontSize="lg" fontWeight="bold">
-                                                Dia: {bookedSchedules.schedboo_date};
+                                                Dia: {new Date(bookedSchedules.schedboo_date).toLocaleDateString()};
                                             </Text>
                                             <Text>
                                                 Horário: {bookedSchedules.schedule_time_start} - {bookedSchedules.schedule_time_end};
@@ -228,10 +302,15 @@ const SchedulesUser = () => {
                                             <Text>
                                                 Empresa: {bookedSchedules.userent_desc};
                                             </Text>
+                                            <Text>
+                                                Situação: {bookedSchedules.schedboo_status};
+                                            </Text>
                                         </Box>
-                                        <Button colorScheme="red" onClick={() => { }}>
-                                            Excluir
-                                        </Button>
+                                        {bookedSchedules.schedboo_status === 'confirmado' || bookedSchedules.schedboo_status === 'pendente' ? (
+                                            <Button colorScheme="red" onClick={() => { openAlert(bookedSchedules.schedboo_id) }}>
+                                                Cancelar
+                                            </Button>
+                                        ) : null}
                                     </Flex>
                                 </Box>
                             ))
@@ -248,20 +327,23 @@ const SchedulesUser = () => {
                         <AlertDialogOverlay>
                             <AlertDialogContent>
                                 <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                                    Confirmar Exclusão
+                                    Confirmar Cancelamento
                                 </AlertDialogHeader>
 
                                 <AlertDialogBody>
-                                    Tem certeza que deseja excluir esta entrega? Esta ação não pode ser desfeita.
+                                    Tem certeza que deseja cancelar esta entrega? Esta ação não pode ser desfeita.
                                 </AlertDialogBody>
 
                                 <AlertDialogFooter>
-                                    <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
+
+                                    <Button colorScheme="red" onClick={handleCancelBooking}>
                                         Cancelar
                                     </Button>
-                                    <Button colorScheme="red" onClick={() => { }}>
-                                        Excluir
+
+                                    <Button ref={cancelRef} onClick={() => setIsAlertOpen(false)}>
+                                        Voltar
                                     </Button>
+
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialogOverlay>
@@ -300,8 +382,8 @@ const SchedulesUser = () => {
                                     <FormLabel>Horário</FormLabel>
                                     <Select placeholder="Selecione um horário" onChange={(e) => setScheduleId(e.target.value)}>
                                         {schedules.map((schedule) => (
-                                            <option key={schedule.id} value={schedule.id}>
-                                                {schedule.start_time} - {schedule.end_time}
+                                            <option key={schedule.schedule_id} value={schedule.schedule_id}>
+                                                {schedule.schedule_time_start} - {schedule.schedule_time_end}
                                             </option>
                                         ))}
                                     </Select>

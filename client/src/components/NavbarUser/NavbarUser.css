@@ -4,7 +4,7 @@
 .sidebar {
     width: 250px;
     /* height: 100vh; */
-    height: 300px;
+    height: 100px;
     border-radius: 5px;
     background-color: #333;
     color: #fff;
@@ -24,7 +24,7 @@
   }
 
   .sidebar.collapsed ul.menu {
-    display: none; /* Oculta o menu quando o sidebar está colapsado */
+    display: none;
 }
   
   .sidebar .logo-text {

@@ -183,7 +183,7 @@ const registerUser = (req, res) => {
                                         }
                                     );
 
-                                } else {                                   
+                                } else {
 
                                     connection.commit((err) => {
                                         if (err) {
@@ -286,8 +286,8 @@ const getEnterprises = async (req, res) => {
             });
         });
 
-    res.send(result);    
-    } catch(err) {
+        res.send(result);
+    } catch (err) {
         res.status(500).send({ success: false, error: "Erro ao buscar as empresas" });
 
     }
@@ -317,7 +317,7 @@ const registerSchedule = async (req, res) => {
 
         await new Promise((resolve, reject) => {
             db.query(`INSERT INTO schedules (schedule_user_ent, schedule_daysofweek, schedule_time_start, schedule_time_end) 
-                      VALUES (?, ?, ?, ?)`, 
+                      VALUES (?, ?, ?, ?)`,
                 [userID, dayOfWeek, timeStart, timeEnd], (err, result) => {
                     if (err) {
                         reject(err);
@@ -351,8 +351,8 @@ const getSchedules = async (req, res) => {
             });
         });
 
-    res.send(result);    
-    } catch(err) {
+        res.send(result);
+    } catch (err) {
         res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
 
     }
@@ -360,9 +360,7 @@ const getSchedules = async (req, res) => {
 
 const getSpecificSchedules = async (req, res) => {
 
-    const {entid, dayOfWeek} = req.params;
-
-    console.log('entrou na busca de horários', entid, dayOfWeek);
+    const { entid, dayOfWeek } = req.params;
 
     try {
 
@@ -378,8 +376,8 @@ const getSpecificSchedules = async (req, res) => {
             });
         });
 
-    res.send(result);    
-    } catch(err) {
+        res.send(result);
+    } catch (err) {
         res.status(500).send({ success: false, error: "Erro ao buscar horários da empresa" });
 
     }
@@ -387,9 +385,9 @@ const getSpecificSchedules = async (req, res) => {
 
 
 
-const deleteSchedule = async (req,res) => {
+const deleteSchedule = async (req, res) => {
 
-    const {timeid} = req.params;
+    const { timeid } = req.params;
 
     try {
         const result = await new Promise((resolve, reject) => {
@@ -398,7 +396,7 @@ const deleteSchedule = async (req,res) => {
                     console.error("Erro na exclusão:", err);
                     reject(err);
                 } else {
-                    console.log("Resultado da exclusão:", result);
+
                     resolve(result);
                 }
             });
@@ -417,14 +415,14 @@ const deleteSchedule = async (req,res) => {
 }
 
 
-const registerBookedSchedule = async (req,res) => {
+const registerBookedSchedule = async (req, res) => {
 
-    const {scheduleid, userid, date, comment} = req.body;
-    
+    const { scheduleid, userid, date, comment } = req.body;
+
     try {
         const existingBookings = await new Promise((resolve, reject) => {
-            
-            db.query(`SELECT * FROM schedules_booked WHERE schedboo_date=? AND schedboo_id=? AND schedboo_status=?`,
+
+            db.query(`SELECT * FROM schedules_booked WHERE schedboo_date=? AND schedboo_schedule_id=? AND schedboo_status=?`,
                 [date, scheduleid, 'pendente'], (err, result) => {
                     if (err) {
                         reject(err);
@@ -432,15 +430,15 @@ const registerBookedSchedule = async (req,res) => {
                         resolve(result);
                     }
                 });
-        });				
+        });
 
         if (existingBookings.length !== 0) {
             return res.status(400).send({ success: false, msg: "Horário ja reservado" });
         }
 
         await new Promise((resolve, reject) => {
-            db.query(`INSERT INTO schedules_booked (schedboo_id, schedboo_user, schedboo_date, schedboo_status, schedboo_comment) 
-                      VALUES (?, ?, ?, ?)`, 
+            db.query(`INSERT INTO schedules_booked (schedboo_schedule_id, schedboo_user, schedboo_date, schedboo_status, schedboo_comment) 
+                      VALUES (?, ?, ?, ?, ?)`,
                 [scheduleid, userid, date, 'pendente', comment], (err, result) => {
                     if (err) {
                         reject(err);
@@ -455,21 +453,56 @@ const registerBookedSchedule = async (req,res) => {
     } catch (err) {
         console.error("Erro ao processar cadastro:", err);
         res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
-    } 
+    }
 
 
 };
 
-const getBookedSchedules = async (req, res) => {
+const getEnterpriseBookings = async (req, res) => {
 
-    const {userid} = req.params;
+    const { userid } = req.params;
 
     try {
+
         const result = await new Promise((resolve, reject) => {
             db.query(`SELECT * FROM schedules_booked 
-                      INNER JOIN schedules ON schedboo_id = schedule_id
-                      INNER JOIN users_enterprise ON schedule_user_ent = userent_id
-                      WHERE schedboo_user=? AND schedboo_status=?`, [userid, 'pendente'], (err, result) => {
+                          INNER JOIN schedules ON schedboo_schedule_id = schedule_id
+                          INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                          WHERE userent_id=?`, [userid], (err, result) => {
+
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        res.send(result);
+
+    } catch (err) {
+        res.status(500).send({ success: false, error: "Erro ao buscar os horários" });
+
+    }
+}
+
+const getBookedSchedules = async (req, res) => {
+
+    const { userid, status } = req.params;
+
+    console.log(userid, status);
+
+    try {
+
+        if (status === 'todos') {
+
+            console.log('entrou no todos');
+
+            const result = await new Promise((resolve, reject) => {
+                db.query(`SELECT * FROM schedules_booked 
+                          INNER JOIN schedules ON schedboo_schedule_id = schedule_id
+                          INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                          WHERE schedboo_user=?`, [userid], (err, result) => {
 
                     if (err) {
                         reject(err);
@@ -478,17 +511,70 @@ const getBookedSchedules = async (req, res) => {
                     }
                 });
             });
-    
-        res.send(result);    
-    } catch(err) {
+
+            res.send(result);
+
+        } else {
+
+
+            console.log('entrou no específico');
+
+            const result = await new Promise((resolve, reject) => {
+                db.query(`SELECT * FROM schedules_booked 
+                          INNER JOIN schedules ON schedboo_schedule_id = schedule_id
+                          INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                          WHERE schedboo_user=? AND schedboo_status=?`, [userid, status], (err, result) => {
+
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+
+            res.send(result);
+        }
+
+
+    } catch (err) {
         res.status(500).send({ success: false, error: "Erro ao buscar os horários" });
- 
+
     }
 };
 
-const deleteBookedSchedule = async(req,res) => {
 
-    const {scheduleId, date, userId} = req.Body;
+const updateBookedScheduleStatus = async (req, res) => {
+
+    const { scheduleBookedId, status } = req.body;
+
+    try {
+        const result = await new Promise((resolve, reject) => {
+            db.query("UPDATE schedules_booked SET schedboo_status=? WHERE schedboo_id=?", [status, scheduleBookedId], (err, result) => {
+                if (err) {
+                    console.error("Erro na exclusão:", err);
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send({ success: false, msg: "horário não encontrado" });
+        }
+
+        res.send({ success: true, msg: "Update realizada com sucesso" });
+    } catch (err) {
+        console.error("Erro ao tentar atualizar:", err);
+        res.status(500).send({ success: false, error: "Erro ao tentar atualizar" });
+    }
+
+};
+
+const deleteBookedSchedule = async (req, res) => {
+
+    const { scheduleId, date, userId } = req.Body;
 
     try {
         const result = await new Promise((resolve, reject) => {
@@ -519,5 +605,5 @@ const deleteBookedSchedule = async(req,res) => {
 module.exports = {
     verifyJWT, typeMiddleware, login, registerUser, getUser, getUserTypes, getSchedules,
     registerSchedule, fetchUserEnterprise, getSchedules, deleteSchedule, getBookedSchedules, registerBookedSchedule, deleteBookedSchedule,
-    getEnterprises, getSpecificSchedules
+    getEnterprises, getSpecificSchedules, updateBookedScheduleStatus, getEnterpriseBookings
 }

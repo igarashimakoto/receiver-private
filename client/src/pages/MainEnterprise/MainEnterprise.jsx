@@ -1,201 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
-import {
-    Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex, 
-    useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
-    ModalFooter, ModalBody, ModalCloseButton, Checkbox, Stack, HStack,
-    Heading,
-} from '@chakra-ui/react';
-import './MainEnterprise.css';
-import agenda from "../../img/ReceiverLogo.png"
-import Header from "../../components/Header/Header";
+import React, { useEffect, useState } from 'react';
+import { Box, Button, Center, Flex, Heading, Spinner, Stack, Text, useToast, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter } from '@chakra-ui/react';
 import axios from 'axios';
+import Header from '../../components/Header/Header';
+import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
 
 const MainEnterprise = () => {
     const [loading, setLoading] = useState(true);
-    const { isOpen, onOpen, onClose } = useDisclosure();
-    const [timeStart, setTimeStart] = useState('');
-    const [timeEnd, setTimeEnd] = useState('');
-    const [times, setTimes] = useState([]);
+    const [scheduledBookings, setScheduledBookings] = useState([]);
+    const [isAlertOpen, setAlertOpen] = useState(false);
+    const [selectedBookingId, setSelectedBookingId] = useState(null);
+    const [actionType, setActionType] = useState(null); // 'confirmar' ou 'recusar'
     const toast = useToast();
-    const [selectedDays, setSelectedDays] = useState({
-        "segunda_feira": 0,
-        "terça_feira": 0,
-        "quarta_feira": 0,
-        "quinta_feira": 0,
-        "Sexta_feira": 0,
-        "sábado": 0,
-        "domingo": 0,
-    });
 
-    const initialRef = React.useRef(null);
-    const finalRef = React.useRef(null);
+    const fetchScheduledBookings = async () => {
+        const userId = localStorage.getItem('userid');
+        try {
+            const response = await axios.get(`http://localhost:3001/control/enterprise/bookings/${userId}`);
+            setScheduledBookings(response.data);
+        } catch (error) {
+            console.error('Erro ao buscar agendamentos:', error);
+        }
+    };
 
     useEffect(() => {
         const loadData = async () => {
-            await new Promise(resolve => setTimeout(resolve, 700));
+            await new Promise(resolve => setTimeout(resolve, 500));
             setLoading(false);
         };
 
+        fetchScheduledBookings();
         loadData();
-        fetchTimes();
-
     }, []);
 
-    const handleClickClose = () => {
-        onClose();
-        setTimeEnd('');
-        setTimeStart('');
-        setSelectedDays(
-            {
-                "segunda_feira": 0,
-                "terça_feira": 0,
-                "quarta_feira": 0,
-                "quinta_feira": 0,
-                "Sexta_feira": 0,
-                "sábado": 0,
-                "domingo": 0
-            })
-    };
-
-    const handleDaysChange = (day) => {
-
-        setSelectedDays((prevSelectedDays) => ({
-            ...prevSelectedDays,
-            [day]: prevSelectedDays[day] === 0 ? 1 : 0
-
-        }));
-    };
-
-    const handleValidateRegister = () => {
-
-        const allDaysUnselected = Object.values(selectedDays).every(value => value === 0);
-
-        console.log(allDaysUnselected, timeStart, timeEnd);
-
-        if (allDaysUnselected || !timeStart || !timeEnd || timeEnd < timeStart) {
-            toast({
-                title: "É obrigatório marcar pelo menos um dia e um intervalo de horário!",
-                status: 'error',
-                isClosable: true,
-                position: 'top-right',
-            });
-            console.error('Todos os campos são obrigatórios.');
-            return;
-        } else {
-
-            handleRegisterTime();
-        }
-    }
-
-    const handleRegisterTime = () => {
-
-        const getUserID = localStorage.getItem('userId');
-
-        const selectedDaysString = Object.keys(selectedDays)
-            .filter(day => selectedDays[day] === 1)
-            .join(',');
-
+    const handleStatusChange = async (bookingId, status) => {
         const Data = {
-            userID: getUserID,
-            dayOfWeek: selectedDaysString,
-            timeStart: timeStart,
-            timeEnd: timeEnd
-        }
+            scheduleBookedId: bookingId,
+            status: status
+        };
 
-        axios.post("http://localhost:3001/register/time", Data,
-            {
-                headers: {
-                    'x-access-token': localStorage.getItem('token'),
-                }
-            })
-            .then((response) => {
-                console.log(response);
-                toast({
-                    title: "Cadastro feito com Sucesso",
-                    status: 'success',
-                    isClosable: true,
-                    position: 'top-right',
-                });
-            })
-            .catch((error) => {
-
-                if (error.status = 400) {
-
-                    toast({
-                        title: "Horário ja cadastrado",
-                        status: 'error',
-                        isClosable: true,
-                        position: 'top-right',
-                    });
-                } else {
-
-                    toast({
-                        title: "Erro ao fazer a solicitação",
-                        status: 'error',
-                        isClosable: true,
-                        position: 'top-right',
-                    });
-                }
-                console.error("Erro ao fazer a solicitação:", error);
-
-
-            });
-    }
-
-    // const handleFilterChange = (event) => {
-    //     setFilterDate(event.target.value);
-    // };
-
-    // const handleFilter = () => {
-    //     const filtered = times.filter(times =>
-    //         times.schedule_time_start.includes(filterDate)
-    //     );
-    //     setTimes(filtered);
-    // };
-
-    const fetchTimes = async () => {
         try {
             const token = localStorage.getItem('token');
-            console.log(token);
-            const response = await axios.get('http://localhost:3001/control/times', {
+            const response = await axios.post('http://localhost:3001/control/bookedSchedules/updateStatus', Data, {
                 headers: {
                     'x-access-token': token
                 }
             });
 
-            setTimes(response.data);
-        } catch (error) {
-            console.error('Erro ao buscar horários:', error);
-        }
-    };
-
-    const handleDelete = async (timeid) => {
-        try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:3001/schedules/${timeid}`, {
-                headers: { 'x-access-token': token },
-            });
+            setScheduledBookings(response.data);
             toast({
-                title: 'Horário excluído com sucesso!',
+                title: `Agendamento ${status === 'confirmado' ? 'aceito' : 'recusado'}`,
                 status: 'success',
                 isClosable: true,
                 position: 'top-right',
             });
-            // Atualizar a lista de horários após exclusão
-            setTimes((prevSchedules) => prevSchedules.filter((times) => times.schedule_id !== timeid));
         } catch (error) {
-            console.error('Erro ao excluir horário:', error);
             toast({
-                title: 'Erro ao excluir horário',
+                title: "Erro ao mudar o status",
                 status: 'error',
                 isClosable: true,
                 position: 'top-right',
             });
+            console.error('Erro ao mudar o status:', error);
         }
     };
 
+    const openAlert = (bookingId, type) => {
+        setSelectedBookingId(bookingId);
+        setActionType(type);
+        setAlertOpen(true);
+    };
 
+    const handleAlertConfirm = () => {
+        if (selectedBookingId && actionType) {
+            handleStatusChange(selectedBookingId, actionType === 'confirmar' ? 'confirmado' : 'recusado');
+        }
+        setAlertOpen(false);
+    };
+
+    const handleAlertClose = () => {
+        setAlertOpen(false);
+    };
 
     if (loading) {
         return (
@@ -217,100 +101,70 @@ const MainEnterprise = () => {
         <Box>
             <Header />
             <Navbar />
-            <Box className="container-main">
-                <div className="content">
-                    <img src={agenda} alt="logo de calendario" />
-                    <Button bg='#333' color='white' onClick={onOpen}>+ Novo intervalo de Horário</Button>
-                </div>
-                <Modal
-                    initialFocusRef={initialRef}
-                    finalFocusRef={finalRef}
-                    isOpen={isOpen}
-                    onClose={handleClickClose}
-                >
-
-                    <ModalOverlay />
-                    <ModalContent>
-                        <ModalHeader>Novo intervalo de Horário:</ModalHeader>
-                        <ModalCloseButton />
-                        <ModalBody pb={4}>
-
-                            <FormControl mt={4}>
-                                <FormLabel>Selecione os dias da semana:</FormLabel>
-                                <Stack direction="row" spacing={3} className="modal-checkbox-group">
-                                    {Object.keys(selectedDays).map((day) => (
-                                        <Checkbox
-                                            className="custom-checkbox"
-                                            key={day}
-                                            value={day}
-                                            isChecked={selectedDays[day] === 1}
-                                            onChange={() => handleDaysChange(day)}
-                                        >
-                                            {day}
-                                        </Checkbox>
-                                    ))}
-                                </Stack>
-                            </FormControl>
-
-                            <FormControl mt={4}>
-                                <FormLabel>Intervalo de horários:</FormLabel>
-                                <HStack spacing={5}>
-                                    <Box>
-                                        <FormLabel>Horário Inicial</FormLabel>
-                                        <Input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)} />
-                                    </Box>
-
-                                    <Box>
-                                        <FormLabel>Horário Final</FormLabel>
-                                        <Input type="time" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)} />
-                                    </Box>
-                                </HStack>
-                            </FormControl>
-
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button colorScheme='blue' mr={3} onClick={handleValidateRegister}>Agendar</Button>
-                            <Button onClick={handleClickClose}>Cancelar</Button>
-                        </ModalFooter>
-                    </ModalContent>
-                </Modal>
-            </Box>
 
             <Box p={4} className="container-main">
-                <Heading mb={6}>Horários Cadastrados</Heading>
-                <Stack spacing={4}>
-                    {times.length > 0 ? (
-                        times.map((time) => (
-                            <Box
-                                key={time.schedule_id}
-                                p={4}
-                                borderWidth={1}
-                                borderRadius="md"
-                                boxShadow="md"
-                                bg="white"
-                                _hover={{ bg: 'gray.50' }}
-                            >
-                                <Flex justify="space-between" align="center">
-                                    <Box>
-                                        <Text fontSize="lg" fontWeight="bold">
-                                            Dias da semana: {time.schedule_daysofweek}
-                                        </Text>
-                                        <Text>
-                                            Horário: {time.schedule_time_start} - {time.schedule_time_end}
-                                        </Text>
-                                    </Box>
-                                    <Button colorScheme="red" onClick={() => handleDelete(time.schedule_id)}>
-                                        Excluir
+
+                <Heading mb={6}>Agendamentos</Heading>
+                <Box  className='box-list' p={4}>
+                    <Stack spacing={4}>
+                        {scheduledBookings.length > 0 ? (
+                            scheduledBookings.map(booking => (
+                                <Box key={booking.id} p={4} borderWidth={1} borderRadius="md" boxShadow="md">
+                                    <Flex justify="space-between" align="center">
+                                        <Box>
+                                            <Text fontSize="lg" fontWeight="bold">
+                                                Dia: {new Date(booking.date).toLocaleDateString()}
+                                            </Text>
+                                            <Text>
+                                                Horário: {booking.time_start} - {booking.time_end}
+                                            </Text>
+                                            <Text>
+                                                Usuário: {booking.userName}
+                                            </Text>
+                                            <Text>
+                                                Situação: {booking.status}
+                                            </Text>
+                                        </Box>
+                                        <Flex>
+                                            <Button colorScheme="green" onClick={() => openAlert(booking.id, 'confirmar')} mr={2}>
+                                                Aceitar
+                                            </Button>
+                                            <Button colorScheme="red" onClick={() => openAlert(booking.id, 'recusar')}>
+                                                Recusar
+                                            </Button>
+                                        </Flex>
+                                    </Flex>
+                                </Box>
+                            ))
+                        ) : (
+                            <Text>Nenhum agendamento disponível.</Text>
+                        )}
+                    </Stack>
+
+                    <AlertDialog isOpen={isAlertOpen} onClose={handleAlertClose}>
+                        <AlertDialogOverlay>
+                            <AlertDialogContent>
+                                <AlertDialogHeader fontSize='lg' fontWeight='bold'>
+                                    Confirmar Ação
+                                </AlertDialogHeader>
+                                <AlertDialogBody>
+                                    {actionType === 'confirmar' ? "Você tem certeza que deseja aceitar este agendamento?"
+                                        : "Você tem certeza que deseja recusar este agendamento?"}
+                                </AlertDialogBody>
+                                <AlertDialogFooter>
+                                    <Button onClick={handleAlertClose}>Cancelar</Button>
+                                    <Button colorScheme='red' onClick={handleAlertConfirm} ml={3}>
+                                        {actionType === 'confirmar' ? "Aceitar" : "Recusar"}
                                     </Button>
-                                </Flex>
-                            </Box>
-                        ))
-                    ) : (
-                        <Text>Nenhum horário cadastrado.</Text>
-                    )}
-                </Stack>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialogOverlay>
+                    </AlertDialog>
+                </Box>
+
             </Box>
         </Box>
+
     );
 };
 

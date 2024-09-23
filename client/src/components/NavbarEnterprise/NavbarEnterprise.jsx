@@ -16,7 +16,7 @@ const Sidebar = () => {
       </div>
       <ul className="menu">
         <li>
-          <a href="/home">
+          <a href="/mainEnterprise">
             <FaHome />
             {!collapsed && <span>Home</span>}
           </a>

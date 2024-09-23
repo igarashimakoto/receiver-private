@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaHome, FaSignOutAlt, FaCalendar } from "react-icons/fa";
+import { FaHome, FaSignOutAlt } from "react-icons/fa";
 import "./NavbarUser.css";
 
 const Sidebar = () => {
@@ -16,16 +16,9 @@ const Sidebar = () => {
       </div>
       <ul className="menu">
         <li>
-          <a href="/main">
+          <a href="/schedulesUser">
             <FaHome />
             {!collapsed && <span>Home</span>}
-          </a>
-        </li>
-     
-        <li>
-          <a href="/schedulesUser">
-            <FaCalendar />
-            {!collapsed && <span>Marcar entrega</span>}
           </a>
         </li>
 
