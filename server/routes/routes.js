@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const {registerUser, getUser, verifyJWT, login, getUserTypes, registerSchedule, 
        getSchedules, deleteSchedule, registerBookedSchedule, getBookedSchedules, deleteBookedSchedule,
-       getEnterprises, getSpecificSchedules, updateBookedScheduleStatus, getEnterpriseBookings} = require('../controllers/Controller');
+       getEnterprises, getSpecificSchedules, updateBookedScheduleStatus, getEnterpriseBookings, getUserEnterprise} = require('../controllers/Controller');
 
 router.post('/login', login);
 router.post('/register', registerUser);
 router.post('/register/time', registerSchedule);
-router.get('/user', verifyJWT, getUser);
+router.get('/user/:id', verifyJWT, getUser);
+router.get('/user/enterprise/:id', verifyJWT, getUserEnterprise);
 router.get('/control/userTypes', getUserTypes);
 router.get('/control/schedules',verifyJWT, getSchedules);
 router.get('/control/schedules/:dayOfWeek/:entid',verifyJWT, getSpecificSchedules);

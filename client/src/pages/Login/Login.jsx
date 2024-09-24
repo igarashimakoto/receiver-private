@@ -1,9 +1,9 @@
-import { InputGroup, Input, InputRightElement, Button, FormLabel, FormControl, Center, Spinner } from "@chakra-ui/react";
+import { InputGroup, Input, InputRightElement, Button, FormLabel, FormControl, Center, Spinner, Box, Text, Link, HStack } from "@chakra-ui/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import './Login.css';
 import { useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import axios from "axios";
 import { faEye, faEyeSlash } from "@fortawesome/free-regular-svg-icons";
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const handleClick = () => setShow(!show);
     const [show, setShow] = useState(false);
-    const navigate = useNavigate();        
+    const navigate = useNavigate();
 
     useEffect(() => {
         const loadData = async () => {
@@ -95,8 +95,8 @@ const Login = () => {
         }
 
         handleLogin();
-    };   
-    
+    };
+
     if (loading) {
         return (
             <Center h="100vh">
@@ -111,15 +111,15 @@ const Login = () => {
                 <p>Carregando...</p>
             </Center>
         );
-    }  
+    }
 
     return (
-        <div className="bgLogin">
-            <div className="box-login">
-                <div className="form-login">
-                    <div className="box-title-login">
+        <Box className="bgLogin">
+            <Box className="box-login">
+                <Box className="form-login">
+                    <Box className="box-title-login">
                         <span className="title-login">LOGIN</span>
-                    </div>
+                    </Box>
                     <FormControl>
                         <FormLabel>Email</FormLabel>
                         <Input
@@ -150,11 +150,14 @@ const Login = () => {
                             </InputRightElement>
                         </InputGroup>
                     </FormControl>
-                    {/* <Link onClick={() => RegisterPickHandler()} fontSize='12' mt='2'>Criar uma conta</Link> */}
                     <Button type="submit" onClick={validateLogin} colorScheme='green' mt='6'>Fazer Login</Button>
-                </div>
-            </div>
-        </div>
+                    <HStack mt="4" justify="center">
+                        <Text>Não tem conta? </Text>
+                        <Link color='green.500' href="/cadastro" fontWeight={'bold'}>Cadastre-se</Link>
+                    </HStack>
+                </Box>
+            </Box>
+        </Box>
     );
 }
 

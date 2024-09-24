@@ -50,6 +50,19 @@
   color: #29b11d;
 }
 
+.register-container {
+  margin-top: '40px'; 
+  text-align: 'center'; 
+  align-items: 'center';
+  align-content: 'center';
+  border: black, solid;
+}
+
+.register-link {
+  color: '#29b11d'; 
+  font-weight: 'bold' 
+}
+
 @media (max-width: 768px) {
   .box-login {
       flex-direction: column;

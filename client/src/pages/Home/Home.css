@@ -10,6 +10,8 @@
     height: 100vh;
     width: 100vw;
     position: fixed;
+    position: relative;
+
 }
 
 
@@ -52,9 +54,16 @@ main .container {
     color: #29b11d;
     top: 50%;
     left: 50%;
+    height: 400px;
     transform: translate(-50%, -50%);
     width: 80%; 
     text-align: left;
+    background-color: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-start;
+
 }
 
 

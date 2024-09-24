@@ -14,7 +14,7 @@
   }
   
   .sidebar.collapsed {
-    height : 3vh;
+    height : 0vh;
   }
   
   .sidebar .logo {

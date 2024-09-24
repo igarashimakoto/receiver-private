@@ -27,6 +27,8 @@ const SchedulesUser = () => {
     const [selectedEnterprise, setSelectedEnterprise] = useState(0);
     const [bookedIdToCancel, setBookedIdToCancel] = useState(0);
     const [filterStatus, setFilterStatus] = useState('todos');
+    const [enterpriseInfo, setenterpriseInfo] = useState({});
+    const [isEnterpriseInfoOpen, setEnterpriseInfoOpen] = useState(false);
 
 
     const fetchBookedSchedules = useCallback(async () => {
@@ -66,6 +68,32 @@ const SchedulesUser = () => {
         fetchEnterprises();
 
     }, [selectedEnterprise, scheduleDate, fetchBookedSchedules]);
+
+
+    const fetchEnterpriseInfo = async (userId) => {
+
+        console.log('procurando empresa', userId);
+
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get(`http://localhost:3001/user/enterprise/${userId}`, {
+                headers: {
+                    'x-access-token': token,
+                },
+            });
+
+            console.log('empresa', response.data.enterprise);
+
+            setenterpriseInfo(response.data.enterprise);
+
+        } catch (error) {
+
+            console.error('Erro ao buscar informações do usuário:', error);
+        } finally {
+
+            setEnterpriseInfoOpen(true);
+        }
+    };
 
 
     const handleClickClose = () => {
@@ -277,7 +305,7 @@ const SchedulesUser = () => {
                         <option value="confirmado">confirmado</option>
                         <option value="concluido">concluído</option>
                         <option value="cancelado">cancelado</option>
-                        <option value="cancelado">recusado</option>
+                        <option value="recusado">recusado</option>
                     </Select>
                 </Flex>
 
@@ -293,6 +321,7 @@ const SchedulesUser = () => {
                                     boxShadow="md"
                                     bg="white"
                                     _hover={{ bg: 'gray.50' }}
+                                    onClick={() => fetchEnterpriseInfo(bookedSchedules.userent_id)}
                                 >
                                     <Flex justify="space-between" align="center">
                                         <Box>
@@ -310,7 +339,7 @@ const SchedulesUser = () => {
                                             </Text>
                                         </Box>
                                         {bookedSchedules.schedboo_status === 'confirmado' || bookedSchedules.schedboo_status === 'pendente' ? (
-                                            <Button colorScheme="red" onClick={() => { openAlert(bookedSchedules.schedboo_id) }}>
+                                            <Button colorScheme="red" onClick={(e) => {e.stopPropagation(); openAlert(bookedSchedules.schedboo_id) }}>
                                                 Cancelar
                                             </Button>
                                         ) : null}
@@ -321,6 +350,31 @@ const SchedulesUser = () => {
                             <Text>Nenhuma entrega cadastrada.</Text>
                         )}
                     </Stack>
+
+                    <Modal isOpen={isEnterpriseInfoOpen} onClose={() => setEnterpriseInfoOpen(false)}>
+                        <ModalOverlay />
+                        <ModalContent>
+                            <ModalHeader>Informações da Empresa</ModalHeader>
+                            <ModalBody>
+                                {enterpriseInfo && Object.keys(enterpriseInfo).length > 0 ? (
+                                    <Box>
+                                        <Text><strong>Empresa:</strong> {enterpriseInfo.entDesc}</Text>
+                                        <Text><strong>Email:</strong> {enterpriseInfo.email}</Text>
+                                        <Text><strong>Telefone:</strong> {enterpriseInfo.phone}</Text>
+                                        <Text><strong>Endereço:</strong> {enterpriseInfo.entAddr}</Text>
+
+                                    </Box>
+                                ) : (
+                                    <Text>Nenhuma informação disponível.</Text>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button colorScheme='blue' onClick={() => setEnterpriseInfoOpen(false)}>
+                                    Fechar
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
 
                     <AlertDialog
                         isOpen={isAlertOpen}

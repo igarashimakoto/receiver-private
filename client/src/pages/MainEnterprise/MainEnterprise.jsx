@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Button, Center, Flex, Heading, Spinner, Stack, Text, useToast, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Select } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, Heading, Spinner, Stack, Text, useToast, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Select, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@chakra-ui/react';
 import axios from 'axios';
 import Header from '../../components/Header/Header';
 import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
@@ -12,6 +12,8 @@ const MainEnterprise = () => {
     const [actionType, setActionType] = useState(null);
     const toast = useToast();
     const [filterStatus, setFilterStatus] = useState('todos');
+    const [userInfo, setUserInfo] = useState({});
+    const [isUserInfoOpen, setUserInfoOpen] = useState(false);
 
     const fetchScheduledBookings = useCallback(async () => {
 
@@ -42,6 +44,29 @@ const MainEnterprise = () => {
         fetchScheduledBookings();
         loadData();
     }, [fetchScheduledBookings]);
+
+    const fetchDelivererInfo = async (userId) => {
+
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get(`http://localhost:3001/user/${userId}`, {
+                headers: {
+                    'x-access-token': token,
+                },
+            });
+
+            console.log(response.data);
+
+            setUserInfo(response.data.user);
+            setUserInfoOpen(true);
+        } catch (error) {
+
+            console.error('Erro ao buscar informações do usuário:', error);
+        } finally {
+
+            setUserInfoOpen(true);
+        }
+    };
 
 
     const handleAlertConfirm = () => {
@@ -93,18 +118,18 @@ const MainEnterprise = () => {
 
     const openAlert = (bookingId, type, time, date) => {
         console.log('openAlert:', bookingId, type, time, date);
-    
+
         const currentTime = new Date();
-        
-        const bookingDateOnly = new Date(date).toLocaleDateString('en-CA'); 
+
+        const bookingDateOnly = new Date(date).toLocaleDateString('en-CA');
         const bookingTime = new Date(`${bookingDateOnly}T${time}`);
-        
+
         const isPastTime = currentTime > bookingTime;
 
         console.log('hora atual:', currentTime, ' hora do agendamento:', bookingTime, ' passou da data:', isPastTime);
-    
+
         const isDifferentDate = currentTime.toLocaleDateString() === new Date(date).toLocaleDateString();
-    
+
         if (type === 'concluído' && !isPastTime && isDifferentDate) {
             toast({
                 title: "Não é possível concluir",
@@ -115,12 +140,12 @@ const MainEnterprise = () => {
             });
             return;
         }
-    
+
         setSelectedBookingId(bookingId);
         setActionType(type);
         setAlertOpen(true);
     };
-    
+
 
     const handleAlertClose = () => {
         setAlertOpen(false);
@@ -177,7 +202,15 @@ const MainEnterprise = () => {
                     <Stack spacing={4}>
                         {scheduledBookings.length > 0 ? (
                             scheduledBookings.map(booking => (
-                                <Box key={booking.schedboo_id} p={4} borderWidth={1} borderRadius="md" boxShadow="md">
+                                <Box
+                                    key={booking.schedboo_id}
+                                    p={4}
+                                    borderWidth={1}
+                                    borderRadius="md"
+                                    boxShadow="md"
+                                    bg="white"
+                                    _hover={{ bg: 'gray.50' }}
+                                    onClick={() => fetchDelivererInfo(booking.users_id)}>
                                     <Flex justify="space-between" align="center">
                                         <Box>
                                             <Text fontSize="lg" fontWeight="bold">
@@ -195,28 +228,29 @@ const MainEnterprise = () => {
                                         </Box>
                                         <Flex>
                                             {booking.schedboo_status === 'pendente' ? (
-                                                <Button colorScheme="green" onClick={() =>
-                                                    openAlert(booking.schedboo_id, 'confirmar', booking.schedule_time_start,
-                                                        booking.schedboo_date)} mr={2}>
+                                                <Button colorScheme="green" mr={2} onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openAlert(booking.schedboo_id, 'confirmar', booking.schedule_time_start, booking.schedboo_date)
+                                                }}>
                                                     Aceitar
                                                 </Button>
                                             ) : null}
                                             {booking.schedboo_status === 'pendente' ? (
-                                                <Button colorScheme="red" onClick={() =>
-                                                    openAlert(booking.schedboo_id, 'recusar', booking.schedule_time_start,
-                                                        booking.schedboo_date)}>
+                                                <Button colorScheme="red" mr={2} onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openAlert(booking.schedboo_id, 'recusar', booking.schedule_time_start, booking.schedboo_date)
+                                                }}>
                                                     Recusar
                                                 </Button>
                                             ) : null}
                                             {booking.schedboo_status === 'confirmado' ? (
-                                                <Button colorScheme="green" onClick={() =>
-                                                    openAlert(booking.schedboo_id, 'concluído', booking.schedule_time_start,
-                                                        booking.schedboo_date)}>
+                                                <Button colorScheme="green" mr={2} onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openAlert(booking.schedboo_id, 'concluído', booking.schedule_time_start, booking.schedboo_date)
+                                                }}>
                                                     Concluir
                                                 </Button>
                                             ) : null}
-
-
                                         </Flex>
                                     </Flex>
                                 </Box>
@@ -226,6 +260,29 @@ const MainEnterprise = () => {
                         )}
                     </Stack>
 
+                    <Modal isOpen={isUserInfoOpen} onClose={() => setUserInfoOpen(false)}>
+                        <ModalOverlay />
+                        <ModalContent>
+                            <ModalHeader>Informações do Entregador</ModalHeader>
+                            <ModalBody>
+                                {userInfo && Object.keys(userInfo).length > 0 ? (
+                                    <Box>
+                                        <Text><strong>Nome:</strong> {userInfo.name}</Text>
+                                        <Text><strong>Email:</strong> {userInfo.email}</Text>
+                                        <Text><strong>Telefone:</strong> {userInfo.phone}</Text>
+
+                                    </Box>
+                                ) : (
+                                    <Text>Nenhuma informação disponível.</Text>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button colorScheme='blue' onClick={() => setUserInfoOpen(false)}>
+                                    Fechar
+                                </Button>
+                            </ModalFooter>
+                        </ModalContent>
+                    </Modal>
                     <AlertDialog isOpen={isAlertOpen} onClose={handleAlertClose}>
                         <AlertDialogOverlay>
                             <AlertDialogContent>

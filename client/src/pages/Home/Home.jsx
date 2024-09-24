@@ -24,7 +24,7 @@ const Home = () => {
         navigate('/login');
     };
 
-    const RegisterEmpPickHandler = () => {
+    const RegisterEmpHandler = () => {
         navigate('/cadastro');
     };
 
@@ -57,7 +57,7 @@ const Home = () => {
 
                     <p>Otimize seu gerenciamento do recebimento de carga da sua empresa com o Receiver!</p>
                     <p>Contrate nosso sistema de agendamento agora mesmo.</p>
-                    <Button className='button-format' onClick={RegisterEmpPickHandler} mt={5} colorScheme='green'>Cadastre seu usuário</Button>
+                    <Button className='button-format' onClick={RegisterEmpHandler} mt={5} colorScheme='green'>Cadastre seu usuário</Button>
                 </div>
             </main>
         </div>
