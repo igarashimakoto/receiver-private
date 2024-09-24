@@ -297,12 +297,14 @@ const getEnterprises = async (req, res) => {
 const registerSchedule = async (req, res) => {
     const { userID, dayOfWeek, timeStart, timeEnd } = req.body;
 
+    console.log( "registrando schedule: ", userID, dayOfWeek, timeStart, timeEnd );
+
     try {
         const existingSchedules = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM schedules WHERE 
+            db.query(`SELECT * FROM schedules WHERE FIND_IN_SET(?, schedule_daysofweek) AND  
                       (? between schedule_time_start and schedule_time_end OR 
-                       ? between schedule_time_start and schedule_time_end) AND schedule_daysofweek = ?`,
-                [timeStart, timeEnd, dayOfWeek], (err, result) => {
+                       ? between schedule_time_start and schedule_time_end)`,
+                [dayOfWeek, timeStart, timeEnd], (err, result) => {
                     if (err) {
                         reject(err);
                     } else {
@@ -421,7 +423,6 @@ const registerBookedSchedule = async (req, res) => {
 
     try {
         const existingBookings = await new Promise((resolve, reject) => {
-
             db.query(`SELECT * FROM schedules_booked WHERE schedboo_date=? AND schedboo_schedule_id=? AND schedboo_status=?`,
                 [date, scheduleid, 'pendente'], (err, result) => {
                     if (err) {
@@ -435,6 +436,19 @@ const registerBookedSchedule = async (req, res) => {
         if (existingBookings.length !== 0) {
             return res.status(400).send({ success: false, msg: "Horário ja reservado" });
         }
+
+        const result = await new Promise((resolve, reject) => {
+            db.query(`SELECT * FROM schedules WHERE schedule_id=?`,
+                [scheduleid], (err, result) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });      
+        });
+
+        result.schedule_time_start 
 
         await new Promise((resolve, reject) => {
             db.query(`INSERT INTO schedules_booked (schedboo_schedule_id, schedboo_user, schedboo_date, schedboo_status, schedboo_comment) 
@@ -454,33 +468,59 @@ const registerBookedSchedule = async (req, res) => {
         console.error("Erro ao processar cadastro:", err);
         res.status(500).send({ success: false, error: "Erro ao processar cadastro" });
     }
-
-
 };
 
 const getEnterpriseBookings = async (req, res) => {
 
-    const { userid } = req.params;
+    const { userid, status } = req.params;
 
     try {
 
-        const result = await new Promise((resolve, reject) => {
-            db.query(`SELECT * FROM schedules_booked 
-                          INNER JOIN schedules ON schedboo_schedule_id = schedule_id
-                          INNER JOIN users_enterprise ON schedule_user_ent = userent_id
-                          WHERE userent_id=?`, [userid], (err, result) => {
+        if (status === 'todos') {
 
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result);
-                }
+            const result = await new Promise((resolve, reject) => {
+                db.query(`SELECT * FROM schedules_booked 
+                              INNER JOIN schedules ON schedboo_schedule_id = schedule_id
+                              INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                              INNER JOIN users ON schedboo_user = users_id
+                              WHERE userent_id=?                               
+                              ORDER BY schedboo_schedule_id
+                              `, [userid], (err, result) => {
+    
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
             });
-        });
+    
+            res.send(result);
+        } else {
 
-        res.send(result);
+            const result = await new Promise((resolve, reject) => {
+                db.query(`SELECT * FROM schedules_booked 
+                              INNER JOIN schedules ON schedboo_schedule_id = schedule_id
+                              INNER JOIN users_enterprise ON schedule_user_ent = userent_id
+                              INNER JOIN users ON schedboo_user = users_id
+                              WHERE userent_id=? AND schedboo_status=?
+                              ORDER BY schedboo_schedule_id`
+                              , [userid, status], (err, result) => {
+    
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+    
+            res.send(result);            
+        }
 
     } catch (err) {
+
+        console.error('Erro no backend:', err);
         res.status(500).send({ success: false, error: "Erro ao buscar os horários" });
 
     }
@@ -490,19 +530,17 @@ const getBookedSchedules = async (req, res) => {
 
     const { userid, status } = req.params;
 
-    console.log(userid, status);
-
     try {
 
         if (status === 'todos') {
-
-            console.log('entrou no todos');
 
             const result = await new Promise((resolve, reject) => {
                 db.query(`SELECT * FROM schedules_booked 
                           INNER JOIN schedules ON schedboo_schedule_id = schedule_id
                           INNER JOIN users_enterprise ON schedule_user_ent = userent_id
-                          WHERE schedboo_user=?`, [userid], (err, result) => {
+                          WHERE schedboo_user=? 
+                          ORDER BY schedboo_schedule_id
+                          `, [userid], (err, result) => {
 
                     if (err) {
                         reject(err);
@@ -523,7 +561,9 @@ const getBookedSchedules = async (req, res) => {
                 db.query(`SELECT * FROM schedules_booked 
                           INNER JOIN schedules ON schedboo_schedule_id = schedule_id
                           INNER JOIN users_enterprise ON schedule_user_ent = userent_id
-                          WHERE schedboo_user=? AND schedboo_status=?`, [userid, status], (err, result) => {
+                          WHERE schedboo_user=? AND schedboo_status=?
+                          ORDER BY schedboo_schedule_id
+                          `, [userid, status], (err, result) => {
 
                     if (err) {
                         reject(err);

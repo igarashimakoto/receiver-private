@@ -54,7 +54,7 @@ const Login = () => {
                     const type = jwtDecode(token).type;
                     console.log(type);
                     if (type === 2) {
-                        navigate('/main');
+                        navigate('/schedulesUser');
                     } else {
                         navigate('/mainEnterprise');
                     }

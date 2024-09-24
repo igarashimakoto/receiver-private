@@ -72,6 +72,9 @@ const SchedulesUser = () => {
 
         onClose();
         setScheduleId(0);
+        setSelectedEnterprise(0);
+        setScheduleDate(0); 
+        setSchedules([]);
         setScheduleDate('');
         setComment('');
 
@@ -374,7 +377,8 @@ const SchedulesUser = () => {
 
                             <FormControl mb={4}>
                                 <FormLabel>Data</FormLabel>
-                                <Input type="date" onChange={(e) => setScheduleDate(e.target.value)} value={scheduleDate} />
+                                <Input type="date" min={new Date().toISOString().split("T")[0]}
+                                onChange={(e) => setScheduleDate(e.target.value)} value={scheduleDate} />
                             </FormControl>
 
                             {schedules.length > 0 && (

@@ -1,63 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
-body .container-main {
+.container-main {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin-left: 16%; 
+    margin-left: 16%;
+    position: relative; 
 }
 
-
-body .container-main .content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-body .container-main img {
-    width: 50%;
+.box-list {
+    max-height: 300px;
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     margin-bottom: 20px;
-    opacity: 60%;
-}
-
-body .category {
-    position: absolute;
-    top: 15%;
-    left: 20%;
-    transform: translate(-50%, -50%);
-}
-
-body .category h1 {
-    font-family: "Roboto", sans-serif;
-    font-weight: 400;
-    font-style: normal;
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-}
-
-.custom-checkbox-group {
-    font-size: 0.85rem; 
-}
-
-.custom-checkbox {
-    transform: scale(0.9); 
-    margin-right: 8px;
-}
-.modal-checkbox-group {
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 10px;
-}
-
-.container-lista {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin-left: 16%; 
-
 }
 
 @media screen and (max-width: 768px) {

@@ -17,7 +17,7 @@ router.get('/control/bookedSchedules/:userid/:status', verifyJWT, getBookedSched
 router.delete('/control/user/BookedSchedule/delete',verifyJWT, deleteBookedSchedule);
 router.get('/control/enterprises',verifyJWT, getEnterprises); 
 router.post('/control/bookedSchedules/updateStatus',verifyJWT, updateBookedScheduleStatus);
-router.get('/control/enterprise/bookings/:userid',verifyJWT, getEnterpriseBookings);
+router.get('/control/enterprise/bookings/:userid/:status',verifyJWT, getEnterpriseBookings);
 
 module.exports = router;
 

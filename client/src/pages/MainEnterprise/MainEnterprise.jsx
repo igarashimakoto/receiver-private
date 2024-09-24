@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, Center, Flex, Heading, Spinner, Stack, Text, useToast, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter } from '@chakra-ui/react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Box, Button, Center, Flex, Heading, Spinner, Stack, Text, useToast, AlertDialog, AlertDialogOverlay, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Select } from '@chakra-ui/react';
 import axios from 'axios';
 import Header from '../../components/Header/Header';
 import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
@@ -9,18 +9,29 @@ const MainEnterprise = () => {
     const [scheduledBookings, setScheduledBookings] = useState([]);
     const [isAlertOpen, setAlertOpen] = useState(false);
     const [selectedBookingId, setSelectedBookingId] = useState(null);
-    const [actionType, setActionType] = useState(null); // 'confirmar' ou 'recusar'
+    const [actionType, setActionType] = useState(null);
     const toast = useToast();
+    const [filterStatus, setFilterStatus] = useState('todos');
 
-    const fetchScheduledBookings = async () => {
+    const fetchScheduledBookings = useCallback(async () => {
+
         const userId = localStorage.getItem('userid');
+
+        const token = localStorage.getItem('token');
+
         try {
-            const response = await axios.get(`http://localhost:3001/control/enterprise/bookings/${userId}`);
+            const response = await axios.get(`http://localhost:3001/control/enterprise/bookings/${userId}/${filterStatus}`, {
+                headers: {
+                    'x-access-token': token
+                }
+            });
+
+            console.log('resultado do fetch', response.data);
             setScheduledBookings(response.data);
         } catch (error) {
             console.error('Erro ao buscar agendamentos:', error);
         }
-    };
+    }, [filterStatus]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -30,13 +41,27 @@ const MainEnterprise = () => {
 
         fetchScheduledBookings();
         loadData();
-    }, []);
+    }, [fetchScheduledBookings]);
+
+
+    const handleAlertConfirm = () => {
+
+        console.log(selectedBookingId, actionType);
+
+        if (selectedBookingId && actionType) {
+            handleStatusChange(selectedBookingId, actionType === 'confirmar' ? 'confirmado' : actionType === 'recusar' ? 'recusado' : 'concluído');
+        }
+        setAlertOpen(false);
+
+    };
 
     const handleStatusChange = async (bookingId, status) => {
         const Data = {
             scheduleBookedId: bookingId,
             status: status
         };
+
+        console.log('status change', Data);
 
         try {
             const token = localStorage.getItem('token');
@@ -48,7 +73,7 @@ const MainEnterprise = () => {
 
             setScheduledBookings(response.data);
             toast({
-                title: `Agendamento ${status === 'confirmado' ? 'aceito' : 'recusado'}`,
+                title: `Agendamento ${status === 'confirmado' ? 'aceito' : status === 'recusado' ? 'recusado' : 'concluído'}`,
                 status: 'success',
                 isClosable: true,
                 position: 'top-right',
@@ -62,24 +87,50 @@ const MainEnterprise = () => {
             });
             console.error('Erro ao mudar o status:', error);
         }
+
+        await fetchScheduledBookings();
     };
 
-    const openAlert = (bookingId, type) => {
+    const openAlert = (bookingId, type, time, date) => {
+        console.log('openAlert:', bookingId, type, time, date);
+    
+        const currentTime = new Date();
+        
+        const bookingDateOnly = new Date(date).toLocaleDateString('en-CA'); 
+        const bookingTime = new Date(`${bookingDateOnly}T${time}`);
+        
+        const isPastTime = currentTime > bookingTime;
+
+        console.log('hora atual:', currentTime, ' hora do agendamento:', bookingTime, ' passou da data:', isPastTime);
+    
+        const isDifferentDate = currentTime.toLocaleDateString() === new Date(date).toLocaleDateString();
+    
+        if (type === 'concluído' && !isPastTime && isDifferentDate) {
+            toast({
+                title: "Não é possível concluir",
+                description: "Não é possível marcar como concluído antes do horário ou para uma data futura.",
+                status: "error",
+                isClosable: true,
+                position: 'top-right',
+            });
+            return;
+        }
+    
         setSelectedBookingId(bookingId);
         setActionType(type);
         setAlertOpen(true);
     };
-
-    const handleAlertConfirm = () => {
-        if (selectedBookingId && actionType) {
-            handleStatusChange(selectedBookingId, actionType === 'confirmar' ? 'confirmado' : 'recusado');
-        }
-        setAlertOpen(false);
-    };
+    
 
     const handleAlertClose = () => {
         setAlertOpen(false);
     };
+
+    const handleChangeFilter = (status) => {
+
+        setFilterStatus(status);
+        fetchScheduledBookings();
+    }
 
     if (loading) {
         return (
@@ -105,33 +156,67 @@ const MainEnterprise = () => {
             <Box p={4} className="container-main">
 
                 <Heading mb={6}>Agendamentos</Heading>
-                <Box  className='box-list' p={4}>
+
+                <Flex justify="flex-end" mb={4}>
+                    <Box />
+                    <Select
+                        width="200px"
+                        value={filterStatus}
+                        onChange={(e) => handleChangeFilter(e.target.value)}
+                    >
+                        <option value="todos">todos</option>
+                        <option value="pendente">pendente</option>
+                        <option value="confirmado">confirmado</option>
+                        <option value="concluido">concluído</option>
+                        <option value="cancelado">cancelado</option>
+                        <option value="recusado">recusado</option>
+                    </Select>
+                </Flex>
+
+                <Box className='box-list' p={4}>
                     <Stack spacing={4}>
                         {scheduledBookings.length > 0 ? (
                             scheduledBookings.map(booking => (
-                                <Box key={booking.id} p={4} borderWidth={1} borderRadius="md" boxShadow="md">
+                                <Box key={booking.schedboo_id} p={4} borderWidth={1} borderRadius="md" boxShadow="md">
                                     <Flex justify="space-between" align="center">
                                         <Box>
                                             <Text fontSize="lg" fontWeight="bold">
-                                                Dia: {new Date(booking.date).toLocaleDateString()}
+                                                Dia: {new Date(booking.schedboo_date).toLocaleDateString()}
                                             </Text>
                                             <Text>
-                                                Horário: {booking.time_start} - {booking.time_end}
+                                                Horário: {booking.schedule_time_start} - {booking.schedule_time_end}
                                             </Text>
                                             <Text>
-                                                Usuário: {booking.userName}
+                                                Usuário: {booking.users_name}
                                             </Text>
                                             <Text>
-                                                Situação: {booking.status}
+                                                Situação: {booking.schedboo_status}
                                             </Text>
                                         </Box>
                                         <Flex>
-                                            <Button colorScheme="green" onClick={() => openAlert(booking.id, 'confirmar')} mr={2}>
-                                                Aceitar
-                                            </Button>
-                                            <Button colorScheme="red" onClick={() => openAlert(booking.id, 'recusar')}>
-                                                Recusar
-                                            </Button>
+                                            {booking.schedboo_status === 'pendente' ? (
+                                                <Button colorScheme="green" onClick={() =>
+                                                    openAlert(booking.schedboo_id, 'confirmar', booking.schedule_time_start,
+                                                        booking.schedboo_date)} mr={2}>
+                                                    Aceitar
+                                                </Button>
+                                            ) : null}
+                                            {booking.schedboo_status === 'pendente' ? (
+                                                <Button colorScheme="red" onClick={() =>
+                                                    openAlert(booking.schedboo_id, 'recusar', booking.schedule_time_start,
+                                                        booking.schedboo_date)}>
+                                                    Recusar
+                                                </Button>
+                                            ) : null}
+                                            {booking.schedboo_status === 'confirmado' ? (
+                                                <Button colorScheme="green" onClick={() =>
+                                                    openAlert(booking.schedboo_id, 'concluído', booking.schedule_time_start,
+                                                        booking.schedboo_date)}>
+                                                    Concluir
+                                                </Button>
+                                            ) : null}
+
+
                                         </Flex>
                                     </Flex>
                                 </Box>
@@ -149,12 +234,13 @@ const MainEnterprise = () => {
                                 </AlertDialogHeader>
                                 <AlertDialogBody>
                                     {actionType === 'confirmar' ? "Você tem certeza que deseja aceitar este agendamento?"
-                                        : "Você tem certeza que deseja recusar este agendamento?"}
+                                        : actionType === 'recusar' ? "Você tem certeza que deseja recusar este agendamento?"
+                                            : "Você tem certeza que deseja finalizar este agendamento?"}
                                 </AlertDialogBody>
                                 <AlertDialogFooter>
                                     <Button onClick={handleAlertClose}>Cancelar</Button>
                                     <Button colorScheme='red' onClick={handleAlertConfirm} ml={3}>
-                                        {actionType === 'confirmar' ? "Aceitar" : "Recusar"}
+                                        {actionType === 'confirmar' ? "Aceitar" : actionType === 'recusar' ? "Recusar" : "Finalizar"}
                                     </Button>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

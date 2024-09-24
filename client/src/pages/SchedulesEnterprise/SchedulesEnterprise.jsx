@@ -3,7 +3,8 @@ import Navbar from "../../components/NavbarEnterprise/NavbarEnterprise";
 import {
     Center, Spinner, Box, Button, FormControl, FormLabel, Input, Text, Flex,
     useDisclosure, useToast, Modal, ModalOverlay, ModalContent, ModalHeader,
-    ModalFooter, ModalBody, ModalCloseButton, Checkbox, Stack, HStack,  Heading 
+    ModalFooter, ModalBody, ModalCloseButton, Checkbox, Stack, HStack, Heading,
+    Wrap
 } from '@chakra-ui/react';
 import {
     AlertDialog,
@@ -96,16 +97,16 @@ const SchedulesEnterprise = () => {
             });
             console.error('Todos os campos são obrigatórios.');
             return;
-        } else if (timeEnd < timeStart) { 
+        } else if (timeEnd < timeStart || timeEnd === timeStart) {
             toast({
-                title: "horário de início deve ser maior que o horário de término",
+                title: "horário de início deve ser maior e diferente que o horário de término",
                 status: 'error',
                 isClosable: true,
                 position: 'top-right',
             });
             console.error('Todos os campos são obrigatórios.');
-            return;       
-        } else{
+            return;
+        } else {
 
             handleRegisterTime();
         }
@@ -323,7 +324,7 @@ const SchedulesEnterprise = () => {
 
                             <FormControl mt={4}>
                                 <FormLabel>Selecione os dias da semana:</FormLabel>
-                                <Stack direction="row" spacing={3} className="modal-checkbox-group">
+                                <Wrap spacing={3} className="modal-checkbox-group">
                                     {Object.keys(selectedDays).map((day) => (
                                         <Checkbox
                                             className="custom-checkbox"
@@ -335,7 +336,7 @@ const SchedulesEnterprise = () => {
                                             {day}
                                         </Checkbox>
                                     ))}
-                                </Stack>
+                                </Wrap>
                             </FormControl>
 
                             <FormControl mt={4}>
