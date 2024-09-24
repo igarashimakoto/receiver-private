@@ -12,7 +12,8 @@ const Header = () => {
     }, []);
 
     return (
-        <div className="navBar">
+        <div className="container">
+            
             <div className="user">
                 <span>{userName}</span>
                 <Avatar className="avatar-logo" src='https://bit.ly/broken-link' />

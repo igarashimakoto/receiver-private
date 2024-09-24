@@ -3,8 +3,7 @@
 
 .sidebar {
     width: 250px;
-    /* height: 100vh; */
-    height: 100px;
+    height: 300px;
     border-radius: 5px;
     background-color: #333;
     color: #fff;
@@ -15,7 +14,7 @@
   }
   
   .sidebar.collapsed {
-    height : 11vh;
+    height : 3vh;
   }
   
   .sidebar .logo {
@@ -94,34 +93,53 @@
     background-color: #555;
   }
   
+  .colorize {
+    color: #29b11d;
+  }
+
   @media (max-width: 768px) {
+
     .sidebar {
-      width: 70px;
+      z-index: 10;
+      height: 200px;
+      margin-top: 50px;
+      width: 210px;
+
     }
-  
+
+    .toggle-btn:hover {
+      background-color: #333;
+    }
+
+
     .sidebar.collapsed .logo-text {
       display: none;
     }
   
     .sidebar ul.menu li a span {
-      display: none;
+      font-size: 12px;
+      display: block;
     }
   
     .sidebar.collapsed ul.menu li a span {
       display: block;
     }
 
-    .toggle-btn {
-      display: none;
-    }
-
     .logo {
       display: none;
+
     }
 
+    .toggle-btn {
+      display: block; 
+      position: fixed;
+      top: 20px; 
+      left: 10px;
+      z-index: 1000;
   }
 
-  .colorize {
-    color: #29b11d;
+
   }
+
+
   

@@ -261,14 +261,14 @@ const SchedulesEnterprise = () => {
                                 >
                                     <Flex justify="space-between" align="center">
                                         <Box>
-                                            <Text fontSize="lg" fontWeight="bold">
+                                            <Text fontSize="lg" fontWeight="bold" wordBreak="break-word">
                                                 Dias da semana: {time.schedule_daysofweek}
                                             </Text>
                                             <Text>
                                                 Horário: {time.schedule_time_start} - {time.schedule_time_end}
                                             </Text>
                                         </Box>
-                                        <Button colorScheme="red" onClick={() => openAlert(time.schedule_id)}>
+                                        <Button minHeight={10} minWidth={20} marginLeft={2} colorScheme="red" onClick={() => openAlert(time.schedule_id)}>
                                             Excluir
                                         </Button>
                                     </Flex>
