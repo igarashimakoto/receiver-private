@@ -355,8 +355,8 @@ const registerSchedule = async (req, res) => {
                           (? >= schedule_time_start AND ? <= schedule_time_end) OR 
                           (schedule_time_start >= ? AND schedule_time_start <= ?) OR 
                           (schedule_time_end >= ? AND schedule_time_end <= ?)
-                      )`,
-                [...values, timeStart, timeEnd, timeStart, timeEnd, timeStart, timeEnd], (err, result) => {
+                      ) and schedule_user_ent=?`,
+                [...values, timeStart, timeEnd, timeStart, timeEnd, timeStart, timeEnd, userID], (err, result) => {
                     if (err) {
                         reject(err);
                     } else {
